@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Toaster } from './components/ui/sonner';
+
 const title = 'FairGrade - Student Assessment Platform';
 const description =
   'A comprehensive grading and assessment management system for instructors';
@@ -7,14 +9,13 @@ useHead({
   bodyAttrs: {
     class: 'font-sans antialiased',
   },
-  link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+  link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.ico' }],
   title,
 });
 
 useSeoMeta({
   title,
   description,
-  // Either NuxtSeo SEO Experiments OR set it manually
   ogTitle: title,
   ogDescription: description,
 });
@@ -23,5 +24,6 @@ useSeoMeta({
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <Toaster />
   </NuxtLayout>
 </template>
