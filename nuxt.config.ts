@@ -3,9 +3,12 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  css: ['~/assets/css/tailwind.css'],
+  css: ['~/assets/css/globals.css'],
   vite: {
     plugins: [tailwindcss()],
+  },
+  devServer: {
+    port: 4000,
   },
   modules: [
     '@nuxt/eslint',
