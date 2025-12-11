@@ -98,17 +98,14 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <Field>
               <Button type="submit"> Login </Button>
-              <FieldDescription class="text-center">
-                Don't have an account?
-                <a href="#"> Sign up </a>
-              </FieldDescription>
+
             </Field>
           </FieldGroup>
         </form>
       </CardContent>
     </Card>
     <FieldDescription class="px-6 text-center">
-      By clicking continue, you agree to our
+      By clicking Login, you agree to our
       <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
     </FieldDescription>
   </div>

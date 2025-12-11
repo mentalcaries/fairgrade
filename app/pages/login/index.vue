@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Mail, Lock, GraduationCap } from 'lucide-vue-next';
+import { GraduationCap } from 'lucide-vue-next';
 </script>
 
 <template>
@@ -19,12 +19,6 @@ import { Mail, Lock, GraduationCap } from 'lucide-vue-next';
 
       <LoginForm />
 
-      <p class="text-center text-sm text-muted-foreground mt-6">
-        Are you an instructor?
-        <NuxtLink href="/grading/login" class="text-primary hover:underline">
-          Sign in here
-        </NuxtLink>
-      </p>
     </div>
   </div>
 </template>
