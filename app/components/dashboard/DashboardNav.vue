@@ -5,6 +5,10 @@ import {
   LayoutDashboard,
   UserCog,
   Users,
+  GraduationCap,
+  LogOut,
+  X,
+  Menu,
 } from 'lucide-vue-next';
 import { cn } from '~/lib/utils';
 
@@ -99,7 +103,9 @@ const user = ref({
             <p class="text-sm font-medium text-sidebar-foreground truncate">
               {{ user?.name || 'Admin' }}
             </p>
-            <p class="text-xs text-muted-foreground truncate">{{user?.email}}</p>
+            <p class="text-xs text-muted-foreground truncate">
+              {{ user?.email }}
+            </p>
           </div>
         </div>
         <Button
