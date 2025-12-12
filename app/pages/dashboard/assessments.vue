@@ -5,5 +5,7 @@ definePageMeta({
 </script>
 
 <template>
-  <h1>Students</h1>
+  <div class="">
+    <h2>Assessments</h2>
+  </div>
 </template>

@@ -2,8 +2,11 @@
 definePageMeta({
   layout: 'dashboard',
 });
+
 </script>
 
 <template>
-  <h1>Students</h1>
+  <div class="">
+   <h2>Class Management</h2> 
+  </div>
 </template>
