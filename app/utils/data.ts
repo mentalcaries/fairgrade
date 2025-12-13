@@ -15,10 +15,10 @@ export interface Student {
   groupId?: string;
   academicYearId?: string;
   rotationGroupId?: string;
-  cohortId?: string;
+  unitId?: string;
 }
 
-export interface Cohort {
+export interface Unit {
   id: string;
   name: string;
   rotationGroupId: string;
@@ -60,7 +60,7 @@ export interface RotationGroup {
   name: string;
   startDate: string;
   endDate: string;
-  cohortCount: number;
+  unitCount: number;
   studentCount: number;
   gradedCount: number;
   status: 'pending' | 'active' | 'complete';
@@ -76,7 +76,7 @@ export interface AcademicYear {
 }
 
 // Initial mock data
-export const initialCohorts: Cohort[] = [
+export const initialUnits: Unit[] = [
   {
     id: 'c1',
     name: 'A1',
@@ -139,7 +139,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU001',
     academicYearId: 'ay1',
     rotationGroupId: 'rg1',
-    cohortId: 'c1',
+    unitId: 'c1',
   },
   {
     id: 's2',
@@ -148,7 +148,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU002',
     academicYearId: 'ay1',
     rotationGroupId: 'rg1',
-    cohortId: 'c1',
+    unitId: 'c1',
   },
   {
     id: 's3',
@@ -157,7 +157,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU003',
     academicYearId: 'ay1',
     rotationGroupId: 'rg2',
-    cohortId: 'c4',
+    unitId: 'c4',
   },
   {
     id: 's4',
@@ -166,7 +166,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU004',
     academicYearId: 'ay1',
     rotationGroupId: 'rg2',
-    cohortId: 'c4',
+    unitId: 'c4',
   },
   {
     id: 's5',
@@ -175,7 +175,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU005',
     academicYearId: 'ay1',
     rotationGroupId: 'rg3',
-    cohortId: 'c6',
+    unitId: 'c6',
   },
   {
     id: 's6',
@@ -184,7 +184,7 @@ export const initialStudents: Student[] = [
     studentId: 'STU006',
     academicYearId: 'ay1',
     rotationGroupId: 'rg3',
-    cohortId: 'c6',
+    unitId: 'c6',
   },
   {
     id: 's7',
@@ -285,7 +285,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'A',
         startDate: '2025-01-14',
         endDate: '2025-02-27',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 40,
         gradedCount: 35,
         status: 'active',
@@ -295,7 +295,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'B',
         startDate: '2025-03-01',
         endDate: '2025-04-15',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 40,
         gradedCount: 40,
         status: 'complete',
@@ -305,7 +305,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'C',
         startDate: '2025-04-16',
         endDate: '2025-05-31',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 38,
         gradedCount: 0,
         status: 'pending',
@@ -315,7 +315,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'D',
         startDate: '2024-09-15',
         endDate: '2024-10-31',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 42,
         gradedCount: 42,
         status: 'complete',
@@ -325,7 +325,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'E',
         startDate: '2024-11-01',
         endDate: '2024-12-15',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 40,
         gradedCount: 40,
         status: 'complete',
@@ -335,7 +335,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'F',
         startDate: '2024-12-16',
         endDate: '2025-01-13',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 39,
         gradedCount: 39,
         status: 'complete',
@@ -354,7 +354,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'A',
         startDate: '2024-01-15',
         endDate: '2024-02-28',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 38,
         gradedCount: 38,
         status: 'complete',
@@ -364,7 +364,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'B',
         startDate: '2024-03-01',
         endDate: '2024-04-15',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 40,
         gradedCount: 40,
         status: 'complete',
@@ -374,7 +374,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'C',
         startDate: '2024-04-16',
         endDate: '2024-05-31',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 36,
         gradedCount: 36,
         status: 'complete',
@@ -384,7 +384,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'D',
         startDate: '2023-09-15',
         endDate: '2023-10-31',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 42,
         gradedCount: 42,
         status: 'complete',
@@ -394,7 +394,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'E',
         startDate: '2023-11-01',
         endDate: '2023-12-15',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 40,
         gradedCount: 40,
         status: 'complete',
@@ -404,7 +404,7 @@ export const initialAcademicYears: AcademicYear[] = [
         name: 'F',
         startDate: '2023-12-16',
         endDate: '2024-01-14',
-        cohortCount: 8,
+        unitCount: 8,
         studentCount: 39,
         gradedCount: 39,
         status: 'complete',

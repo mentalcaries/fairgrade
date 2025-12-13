@@ -3,7 +3,7 @@ import type { Student } from '~/types'
 export function useStudentFilters(students: Student[]) {
   const searchTerm = ref('')
   const groupFilter = ref('all')
-  const cohortFilter = ref('all')
+  const unitFilter = ref('all')
 
   const filteredStudents = computed(() => {
     return students.filter((s) => {
@@ -20,19 +20,19 @@ export function useStudentFilters(students: Student[]) {
         (groupFilter.value === 'E' && s.rotationGroupId === 'rg5') ||
         (groupFilter.value === 'F' && s.rotationGroupId === 'rg6')
 
-      const matchesCohort =
-        cohortFilter.value === 'all' ||
-        (cohortFilter.value === 'assigned' && s.cohortId) ||
-        (cohortFilter.value === 'unassigned' && !s.cohortId)
+      const matchesUnit =
+        unitFilter.value === 'all' ||
+        (unitFilter.value === 'assigned' && s.unitId) ||
+        (unitFilter.value === 'unassigned' && !s.unitId)
 
-      return matchesSearch && matchesGroup && matchesCohort
+      return matchesSearch && matchesGroup && matchesUnit
     })
   })
 
   return {
     searchTerm,
     groupFilter,
-    cohortFilter,
+    unitFilter,
     filteredStudents,
   }
 }

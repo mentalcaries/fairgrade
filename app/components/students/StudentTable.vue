@@ -6,7 +6,7 @@ import { Pencil, Trash2 } from 'lucide-vue-next'
 
 interface Props {
   students: Student[]
-  getCohortLabel: (student: Student) => string | null
+  getUnitLabel: (student: Student) => string | null
 }
 
 interface Emits {
@@ -24,7 +24,7 @@ const emit = defineEmits<Emits>()
       <TableRow class="border-border">
         <TableHead>Name</TableHead>
         <TableHead>Student ID</TableHead>
-        <TableHead class="min-w-[140px]">Cohort</TableHead>
+        <TableHead class="min-w-[140px]">Unit</TableHead>
         <TableHead class="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>
@@ -40,10 +40,10 @@ const emit = defineEmits<Emits>()
         </TableCell>
         <TableCell>
           <span
-            v-if="getCohortLabel(student)"
+            v-if="getUnitLabel(student)"
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
           >
-            {{ getCohortLabel(student) }}
+            {{ getUnitLabel(student) }}
           </span>
           <span
             v-else-if="student.rotationGroupId"

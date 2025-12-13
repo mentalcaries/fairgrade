@@ -59,7 +59,7 @@ const { searchTerm, filteredStudents } = useAssessmentData(
       </CardHeader>
 
       <CardContent>
-        <AssessmentsAssessmentTable :students="filteredStudents" />
+        <AssessmentsTable :students="filteredStudents" />
       </CardContent>
     </Card>
   </div>

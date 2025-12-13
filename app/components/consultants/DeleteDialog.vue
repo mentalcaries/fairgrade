@@ -30,7 +30,7 @@ const emit = defineEmits<Emits>()
       <DialogHeader>
         <DialogTitle>Delete Consultant?</DialogTitle>
         <DialogDescription>
-          Are you sure you want to delete {{ consultant?.name }}? This will remove them from all assigned cohorts.
+          Are you sure you want to delete {{ consultant?.name }}? This will remove them from all assigned units.
         </DialogDescription>
       </DialogHeader>
       

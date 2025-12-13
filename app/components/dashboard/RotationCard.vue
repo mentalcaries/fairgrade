@@ -46,7 +46,7 @@ const progress = computed(() => {
       </div>
     </div>
     
-    <NuxtLink :to="`/dashboard/academic-years/${academicYearId}/groups/${group.id}`">
+    <NuxtLink :to="`/dashboard/class/${academicYearId}/groups/${group.id}`">
       <Button variant="outline" size="sm" class="w-full mt-3 bg-transparent">
         Manage
       </Button>

@@ -6,13 +6,13 @@ import { Search } from 'lucide-vue-next'
 interface Props {
   searchTerm: string
   groupFilter: string
-  cohortFilter: string
+  unitFilter: string
 }
 
 interface Emits {
   (e: 'update:searchTerm', value: string): void
   (e: 'update:groupFilter', value: string): void
-  (e: 'update:cohortFilter', value: string): void
+  (e: 'update:unitFilter', value: string): void
 }
 
 defineProps<Props>()
@@ -46,12 +46,12 @@ const emit = defineEmits<Emits>()
       </SelectContent>
     </Select>
     
-    <Select :model-value="cohortFilter" @update:model-value="emit('update:cohortFilter', $event)">
+    <Select :model-value="unitFilter" @update:model-value="emit('update:unitFilter', $event)">
       <SelectTrigger class="w-[130px]">
-        <SelectValue placeholder="All Cohorts" />
+        <SelectValue placeholder="All Units" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">All Cohorts</SelectItem>
+        <SelectItem value="all">All Units</SelectItem>
         <SelectItem value="assigned">Assigned</SelectItem>
         <SelectItem value="unassigned">Unassigned</SelectItem>
       </SelectContent>

@@ -1,22 +1,34 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { UserCog, Pencil, Send, Trash2, Loader2, ArrowUpDown } from 'lucide-vue-next'
+import type { Instructor } from '~/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import {
+  UserCog,
+  Pencil,
+  Send,
+  Trash2,
+  Loader2,
+  ArrowUpDown,
+} from 'lucide-vue-next';
 
 interface Props {
-  consultants: Instructor[]
-  sendingInviteId: string | null
+  consultants: Instructor[];
+  sendingInviteId: string | null;
 }
 
 interface Emits {
-  (e: 'edit', consultant: Instructor): void
-  (e: 'delete', consultant: Instructor): void
-  (e: 'sendInvite', consultant: Instructor): void
+  (e: 'edit' | 'delete' | 'sendInvite', consultant: Instructor): void;
 }
 
-defineProps<Props>()
-const emit = defineEmits<Emits>()
+defineProps<Props>();
+const emit = defineEmits<Emits>();
 </script>
 
 <template>
@@ -47,7 +59,9 @@ const emit = defineEmits<Emits>()
       >
         <TableCell>
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div
+              class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
+            >
               <UserCog class="h-4 w-4 text-primary" />
             </div>
             <span class="font-medium">{{ consultant.name }}</span>
@@ -86,7 +100,10 @@ const emit = defineEmits<Emits>()
               :disabled="sendingInviteId === consultant.id"
               @click="emit('sendInvite', consultant)"
             >
-              <Loader2 v-if="sendingInviteId === consultant.id" class="h-4 w-4 animate-spin" />
+              <Loader2
+                v-if="sendingInviteId === consultant.id"
+                class="h-4 w-4 animate-spin"
+              />
               <template v-else>
                 <Send class="h-3 w-3 mr-1" />
                 Send Invite

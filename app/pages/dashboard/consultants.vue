@@ -144,7 +144,7 @@ const handleSendInvite = async (consultant: Instructor) => {
       </CardHeader>
 
       <CardContent>
-        <ConsultantsConsultantTable
+        <ConsultantsTable
           :consultants="filteredConsultants"
           :sending-invite-id="sendingInviteId"
           @edit="openEditDialog"
@@ -155,18 +155,18 @@ const handleSendInvite = async (consultant: Instructor) => {
     </Card>
 
     <!-- Dialogs -->
-    <ConsultantsAddConsultantDialog
+    <ConsultantsAddDialog
       v-model:open="addDialogOpen"
       @submit="handleAddSubmit"
     />
 
-    <ConsultantsEditConsultantDialog
+    <ConsultantsEditDialog
       v-model:open="editDialogOpen"
       :consultant="editingConsultant"
       @submit="handleEditSubmit"
     />
 
-    <ConsultantsDeleteConsultantDialog
+    <ConsultantsDeleteDialog
       v-model:open="deleteDialogOpen"
       :consultant="deletingConsultant"
       @confirm="handleDelete"

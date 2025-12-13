@@ -18,13 +18,13 @@ definePageMeta({
   layout: 'dashboard',
 });
 
-const { students, groups, academicYears, cohorts } = useMockData();
+const { students, groups, academicYears, units } = useMockData();
 
-const { searchTerm, groupFilter, cohortFilter, filteredStudents } =
+const { searchTerm, groupFilter, unitFilter, filteredStudents } =
   useStudentFilters(students);
 
 // Helpers
-const { getCohortLabel } = useStudentHelpers(academicYears, cohorts);
+const { getUnitLabel } = useStudentHelpers(academicYears, units);
 
 const studentDialogOpen = ref(false);
 const editingStudent = ref<Student | null>(null);
@@ -121,7 +121,7 @@ const handleDeleteGroup = (groupId: string) => {
               <StudentsStudentFilters
                 v-model:search-term="searchTerm"
                 v-model:group-filter="groupFilter"
-                v-model:cohort-filter="cohortFilter"
+                v-model:unit-filter="unitFilter"
               />
             </div>
           </CardHeader>
@@ -129,7 +129,7 @@ const handleDeleteGroup = (groupId: string) => {
           <CardContent>
             <StudentsStudentTable
               :students="filteredStudents"
-              :get-cohort-label="getCohortLabel"
+              :get-unit-label="getUnitLabel"
               @edit="openStudentDialog"
               @delete="deleteStudentId = $event"
             />
