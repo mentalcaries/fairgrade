@@ -23,7 +23,7 @@ interface Emits {
   (e: 'submit', data: WizardData): void;
 }
 
-const props = defineProps<Props>();
+const { open } = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const step = ref(1);
@@ -201,9 +201,9 @@ const isStep1Valid = computed(() => {
           >
             <Info class="h-4 w-4 mt-0.5 shrink-0" />
             <span>
-              You can add units after creating the academic year. Each group
-              can have a different number of units based on student
-              distribution and hospital capacity.
+              You can add units after creating the academic year. Each group can
+              have a different number of units based on student distribution and
+              hospital capacity.
             </span>
           </div>
         </div>

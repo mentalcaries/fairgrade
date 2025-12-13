@@ -37,13 +37,13 @@ const emit = defineEmits<Emits>();
         class="pl-10 w-64"
         type="text"
         :model-value="searchTerm"
-        @update:model-value="emit('update:searchTerm', $event)"
+        @update:model-value="emit('update:searchTerm', String($event))"
       />
     </div>
 
     <Select
       :model-value="groupFilter"
-      @update:model-value="emit('update:groupFilter', $event)"
+      @update:model-value="emit('update:groupFilter', String($event))"
     >
       <SelectTrigger class="w-[130px]">
         <SelectValue placeholder="All Groups" />
@@ -61,7 +61,7 @@ const emit = defineEmits<Emits>();
 
     <Select
       :model-value="unitFilter"
-      @update:model-value="emit('update:unitFilter', $event)"
+      @update:model-value="emit('update:unitFilter', String($event))"
     >
       <SelectTrigger class="w-[130px]">
         <SelectValue placeholder="All Units" />

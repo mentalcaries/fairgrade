@@ -13,8 +13,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'view'): void
-  (e: 'delete'): void
+  (e: 'view' | 'delete'): void
 }
 
 const props = defineProps<Props>()
