@@ -1,28 +1,36 @@
 <script setup lang="ts">
-import type { Student } from '~/types'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Pencil, Trash2 } from 'lucide-vue-next'
+import type { Student } from '~/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-vue-next';
 
 interface Props {
-  students: Student[]
-  getUnitLabel: (student: Student) => string | null
+  students: Student[];
+  getUnitLabel: (student: Student) => string | null;
 }
 
 interface Emits {
-  (e: 'edit', student: Student): void
-  (e: 'delete', studentId: string): void
+  (e: 'edit', student: Student): void;
+  (e: 'delete', studentId: string): void;
 }
 
-defineProps<Props>()
-const emit = defineEmits<Emits>()
+defineProps<Props>();
+const emit = defineEmits<Emits>();
 </script>
 
 <template>
   <Table>
     <TableHeader>
       <TableRow class="border-border">
-        <TableHead>Name</TableHead>
+        <TableHead>First Name</TableHead>
+        <TableHead>Last Name</TableHead>
         <TableHead>Student ID</TableHead>
         <TableHead class="min-w-[140px]">Unit</TableHead>
         <TableHead class="text-right">Actions</TableHead>
@@ -34,7 +42,8 @@ const emit = defineEmits<Emits>()
         :key="student.id"
         class="border-border"
       >
-        <TableCell class="font-medium">{{ student.name }}</TableCell>
+        <TableCell class="font-medium">{{ student.firstName }}</TableCell>
+        <TableCell class="font-medium">{{ student.lastName }}</TableCell>
         <TableCell class="font-mono text-sm text-muted-foreground">
           {{ student.studentId }}
         </TableCell>

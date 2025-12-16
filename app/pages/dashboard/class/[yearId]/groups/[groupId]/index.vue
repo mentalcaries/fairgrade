@@ -29,13 +29,13 @@ const rotationGroup = computed(() =>
 // Filter data for this group
 const groupUnits = computed(() =>
   units.filter(
-    (c) => c.rotationGroupId === groupId && c.academicYearId === yearId
+    (c) => c.rotationGroupId === groupId && c.classId === yearId
   )
 );
 
 const groupStudents = computed(() =>
   students.filter(
-    (s) => s.rotationGroupId === groupId && s.academicYearId === yearId
+    (s) => s.rotationGroupId === groupId && s.classId === yearId
   )
 );
 

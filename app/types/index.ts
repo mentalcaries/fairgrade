@@ -9,11 +9,12 @@ export type Hospital = (typeof HOSPITALS)[number];
 
 export interface Student {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   studentId: string;
   groupId?: string;
-  academicYearId?: string;
+  classId?: string;
   rotationGroupId?: string;
   unitId?: string;
 }
@@ -22,7 +23,7 @@ export interface Unit {
   id: string;
   name: string;
   rotationGroupId: string;
-  academicYearId: string;
+  classId: string;
   hospital: Hospital;
   instructorId?: string;
   studentIds: string[];
