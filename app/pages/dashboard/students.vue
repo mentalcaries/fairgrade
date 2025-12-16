@@ -76,6 +76,7 @@ const handleDeleteStudent = () => {
   if (deleteStudentId.value) {
     // deleteStudent(deleteStudentId.value)
     console.log('Delete student:', deleteStudentId.value);
+    deleteDialogOpen.value = false;
     deleteStudentId.value = null;
   }
 };
@@ -116,7 +117,12 @@ const handleDeleteStudent = () => {
           :students="filteredStudents"
           :get-unit-label="getUnitLabel"
           @edit="openStudentDialog"
-          @delete="deleteStudentId = $event"
+          @delete="
+            (id) => {
+              deleteStudentId = id;
+              deleteDialogOpen = true;
+            }
+          "
         />
       </CardContent>
     </Card>
