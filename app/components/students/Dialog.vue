@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Student } from '~/types'
+import type { Student } from '~/types';
 import {
   Dialog,
   DialogContent,
@@ -7,50 +7,65 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Props {
-  open: boolean
-  editingStudent: Student | null
+  open: boolean;
+  editingStudent: Student | null;
 }
 
 interface Emits {
-  (e: 'update:open', value: boolean): void
-  (e: 'submit', form: { name: string; email: string; studentId: string }): void
+  (e: 'update:open', value: boolean): void;
+  (
+    e: 'submit',
+    form: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      studentId: string;
+    }
+  ): void;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
 const studentForm = ref({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   studentId: '',
-})
+});
 
 // Reset form when dialog opens with editing student
-watch(() => props.editingStudent, (student) => {
-  if (student) {
-    studentForm.value = {
-      name: student.name,
-      email: student.email,
-      studentId: student.studentId,
+watch(
+  () => props.editingStudent,
+  (student) => {
+    if (student) {
+      studentForm.value = {
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        studentId: student.studentId,
+      };
+    } else {
+      studentForm.value = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        studentId: '',
+      };
     }
-  } else {
-    studentForm.value = {
-      name: '',
-      email: '',
-      studentId: '',
-    }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+);
 
 const handleSubmit = () => {
-  emit('submit', studentForm.value)
-}
+  emit('submit', studentForm.value);
+};
 </script>
 
 <template>
@@ -61,20 +76,32 @@ const handleSubmit = () => {
           {{ editingStudent ? 'Edit Student' : 'Add New Student' }}
         </DialogTitle>
         <DialogDescription>
-          {{ editingStudent ? 'Update student information' : 'Enter student details' }}
+          {{
+            editingStudent
+              ? 'Update student information'
+              : 'Enter student details'
+          }}
         </DialogDescription>
       </DialogHeader>
-      
+
       <div class="space-y-4 py-4">
         <div class="space-y-2">
-          <Label for="name">Full Name</Label>
+          <Label for="name">First Name</Label>
           <Input
             id="name"
-            v-model="studentForm.name"
+            v-model="studentForm.firstName"
             placeholder="John Doe"
           />
         </div>
-        
+        <div class="space-y-2">
+          <Label for="name">Last Name</Label>
+          <Input
+            id="name"
+            v-model="studentForm.lastName"
+            placeholder="John Doe"
+          />
+        </div>
+
         <div class="space-y-2">
           <Label for="studentId">Student ID</Label>
           <Input
@@ -83,7 +110,7 @@ const handleSubmit = () => {
             placeholder="STU001"
           />
         </div>
-        
+
         <div class="space-y-2">
           <Label for="email">Email</Label>
           <Input
@@ -94,7 +121,7 @@ const handleSubmit = () => {
           />
         </div>
       </div>
-      
+
       <DialogFooter>
         <Button variant="outline" @click="emit('update:open', false)">
           Cancel
