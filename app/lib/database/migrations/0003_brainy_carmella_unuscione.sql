@@ -1,0 +1,2 @@
+ALTER TABLE "consultants" DROP CONSTRAINT "consultants_user_id_unique";--> statement-breakpoint
+ALTER TABLE "consultants" ADD CONSTRAINT "consultants_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;

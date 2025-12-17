@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { classes, rotationGroups } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { classes, rotationGroups } from '~/lib/database/schema';
 import { createClassSchema } from '~~/server/utils/validation/classes';
 
 export default defineEventHandler(async (event) => {

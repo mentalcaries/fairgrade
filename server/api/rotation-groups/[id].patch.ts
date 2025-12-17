@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { rotationGroups } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { rotationGroups } from '~/lib/database/schema';
 import { eq } from 'drizzle-orm';
 import { updateRotationGroupSchema } from '~~/server/utils/validation/rotation-groups';
 

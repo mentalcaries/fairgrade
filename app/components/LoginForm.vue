@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useForm } from 'vee-validate';
 import { FormMessage, type FormItem } from './ui/form';
+import { signIn } from '~/lib/auth-client';
 
 const props = defineProps<{
   class?: HTMLAttributes['class'];
@@ -40,6 +41,13 @@ const form = useForm({
 const onSubmit = form.handleSubmit((values) => {
   console.log('Form submitted!', values);
 });
+
+const handleGoogleSignIn = async () => {
+  signIn.social({
+    provider: 'google',
+    callbackURL: '/dashboard',
+  });
+};
 </script>
 
 <template>
@@ -53,11 +61,7 @@ const onSubmit = form.handleSubmit((values) => {
       </CardHeader>
       <CardContent>
         <div class="space-y-4 flex w-full flex-col">
-          <Button variant="outline" type="button">
-            <img src="/apple.svg" alt="Apple Logo" class="h-5 w-5" />
-            Login with Apple
-          </Button>
-          <Button variant="outline" type="button">
+          <Button @click="handleGoogleSignIn" variant="outline" type="button">
             <img src="/google.svg" alt="Google Logo" class="h-5 w-5" />
             Login with Google
           </Button>
@@ -98,7 +102,6 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <Field>
               <Button type="submit"> Login </Button>
-
             </Field>
           </FieldGroup>
         </form>

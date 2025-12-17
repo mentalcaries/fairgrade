@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { students } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { students } from '~/lib/database/schema';
 import { bulkCreateStudentsSchema } from '~~/server/utils/validation/students';
 import { DrizzleQueryError } from 'drizzle-orm';
 

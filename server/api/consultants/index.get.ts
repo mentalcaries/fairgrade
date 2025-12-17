@@ -1,6 +1,6 @@
 import { desc } from 'drizzle-orm';
-import { db } from '~~/server/database';
-import { consultants } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { consultants } from '~/lib/database/schema';
 
 export default defineEventHandler(async () => {
   try {

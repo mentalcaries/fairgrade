@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { classes } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { classes } from '~/lib/database/schema';
 import { eq } from 'drizzle-orm';
 import { updateClassSchema } from '~~/server/utils/validation/classes';
 

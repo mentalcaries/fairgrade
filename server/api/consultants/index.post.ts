@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { consultants } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { consultants } from '~/lib/database/schema';
 import { createConsultantSchema } from '#imports';
 import { randomUUID } from 'crypto';
 import { DrizzleQueryError } from 'drizzle-orm';

@@ -4,4 +4,4 @@ export * from './consultants';
 export * from './rotation-groups';
 export * from './students';
 export * from './units';
-export * from './auth-schema';
+export * from './auth';
