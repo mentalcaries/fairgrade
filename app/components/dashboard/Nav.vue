@@ -12,6 +12,7 @@ import {
   X,
   Calendar,
 } from 'lucide-vue-next';
+import { signOut, useSession } from '~/lib/auth-client';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -21,19 +22,15 @@ const navItems = [
   { href: '/dashboard/students', label: 'Students', icon: Users },
 ];
 
-const router = useRouter();
 const mobileOpen = ref(false);
 
 // Mock user - replace with actual auth composable
-const user = ref({
-  name: 'Admin',
-  email: 'admin@university.edu',
-});
+const session = useSession();
+const user = session.value.data?.user;
 
-const handleLogout = () => {
-  // Replace with actual logout logic
-  console.log('Logging out...');
-  router.push('/login');
+const handleLogout = async () => {
+  await signOut();
+  navigateTo('/login');
 };
 </script>
 
@@ -124,7 +121,7 @@ const handleLogout = () => {
             class="w-full justify-start text-muted-foreground hover:text-destructive"
             @click="handleLogout"
           >
-            <LogOut class="h-4 w-4 mr-2" />
+            <LogOut class="h-4 w-4 mr-2" @click="handleLogout" />
             Sign out
           </Button>
         </div>

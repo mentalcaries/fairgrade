@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { assessments } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { assessments } from '~/lib/database/schema';
 import { createAssessmentSchema } from '~~/server/utils/validation/assessments';
 import { DrizzleQueryError } from 'drizzle-orm';
 

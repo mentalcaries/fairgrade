@@ -1,11 +1,20 @@
-import { pgTable, text, timestamp, uuid, boolean, pgEnum } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  boolean,
+  pgEnum,
+} from 'drizzle-orm/pg-core';
+import { user } from './auth';
 
-
-export const roleEnum = pgEnum('role', ['admin', 'consultant'])
+export const roleEnum = pgEnum('role', ['admin', 'consultant']);
 
 export const consultants = pgTable('consultants', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: text('user_id').notNull().unique(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   role: roleEnum('role').notNull().default('consultant'),

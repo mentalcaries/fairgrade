@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { students } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { students } from '~/lib/database/schema';
 import { eq } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {

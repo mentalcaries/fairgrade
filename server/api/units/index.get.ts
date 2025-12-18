@@ -1,5 +1,5 @@
-import { db } from '~~/server/database';
-import { units } from '~~/server/database/schema';
+import { db } from '~/lib/database';
+import { units } from '~/lib/database/schema';
 import { desc } from 'drizzle-orm';
 
 export default defineEventHandler(async () => {
