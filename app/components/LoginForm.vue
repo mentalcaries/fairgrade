@@ -22,15 +22,17 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'vee-validate';
 import { FormMessage, type FormItem } from './ui/form';
 import { signIn } from '~/lib/auth-client';
+import { toast } from 'vue-sonner';
+import Spinner from './ui/spinner/Spinner.vue';
 
 const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
+const isSubmitting = ref(false);
 const formSchema = toTypedSchema(
   z.object({
-    email: z.email(),
-    password: z.string().min(8),
+    email: z.email('Email is required'),
   })
 );
 
@@ -38,8 +40,23 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
-const onSubmit = form.handleSubmit((values) => {
-  console.log('Form submitted!', values);
+const onSubmit = form.handleSubmit(async (values) => {
+  isSubmitting.value = true;
+  const { error } = await signIn.magicLink({
+    email: values.email,
+    callbackURL: '/dashboard',
+    errorCallbackURL: '/login',
+  });
+
+  if (error) {
+    toast.error('Failed to send magic link. Please try again.');
+    return;
+  }
+
+  await navigateTo(
+    `/login/check-email?email=${encodeURIComponent(values.email)}`
+  );
+  isSubmitting.value = false;
 });
 
 const handleGoogleSignIn = async () => {
@@ -61,13 +78,13 @@ const handleGoogleSignIn = async () => {
       </CardHeader>
       <CardContent>
         <div class="space-y-4 flex w-full flex-col">
-          <Button @click="handleGoogleSignIn" variant="outline" type="button">
+          <Button variant="outline" type="button" @click="handleGoogleSignIn">
             <img src="/google.svg" alt="Google Logo" class="h-5 w-5" />
             Login with Google
           </Button>
         </div>
         <FieldSeparator
-          class="*:data-[slot=field-separator-content]:bg-card my-4"
+          class="*:data-[slot=field-separator-content]:bg-card my-6"
         >
           Or continue with
         </FieldSeparator>
@@ -85,23 +102,11 @@ const handleGoogleSignIn = async () => {
                 <FormMessage />
               </FormItem>
             </FormField>
-            <FormField v-slot="{ componentField }" name="password">
-              <FormItem>
-                <div class="flex items-center">
-                  <FieldLabel for="password"> Password </FieldLabel>
-                </div>
-                <Input id="password" type="password" v-bind="componentField" />
-                <a
-                  href="#"
-                  class="ml-auto text-sm underline-offset-4 hover:underline"
-                >
-                  Forgot your password?
-                </a>
-                <FormMessage />
-              </FormItem>
-            </FormField>
             <Field>
-              <Button type="submit"> Login </Button>
+              <Button type="submit" :disabled="isSubmitting">
+                <Spinner v-if="isSubmitting" class="size-4" />
+                {{ isSubmitting ? 'Sending' : 'Login with Magic Link' }}
+              </Button>
             </Field>
           </FieldGroup>
         </form>

@@ -21,6 +21,9 @@ import {
   initialStudents as students,
   initialAssessments as assessments,
 } from '#imports';
+import { signOut, useSession } from '~/lib/auth-client';
+
+const session = useSession()
 
 const scores = ref<Record<ScoreKey, number>>({
   criterion1: 50,
@@ -46,10 +49,7 @@ interface Criterion {
   description: string;
 }
 
-const user = ref({
-  email: 'consultant@gmail.com',
-  name: 'Dr. Jack Bower',
-});
+
 const criteria: Criterion[] = [
   {
     key: 'criterion1',
@@ -107,8 +107,9 @@ const handleSubmit = () => {
   }, 2000);
 };
 
-const handleLogout = () => {
-  navigateTo('/');
+const handleLogout = async () => {
+  await signOut();
+  navigateTo('/login');
 };
 
 const average = (
@@ -150,7 +151,7 @@ const availableStudents = students.filter(
           </div>
           <div class="flex items-center justify-between gap-4 sm:justify-end">
             <span class="text-sm text-muted-foreground truncate">
-              Signed in as <span class="text-foreground">{{ user.name }}</span>
+              Signed in as <span class="text-foreground">{{ session.data?.user.name }}</span>
             </span>
             <Button
               variant="ghost"
