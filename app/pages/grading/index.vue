@@ -21,9 +21,10 @@ import {
   initialStudents as students,
   initialAssessments as assessments,
 } from '#imports';
-import { signOut, useSession } from '~/lib/auth-client';
+import { signOut } from '~/lib/auth-client';
 
-const session = useSession()
+const { data: consultant } = await useFetch('/api/consultants/me');
+console.log(consultant);
 
 const scores = ref<Record<ScoreKey, number>>({
   criterion1: 50,
@@ -48,7 +49,6 @@ interface Criterion {
   label: string;
   description: string;
 }
-
 
 const criteria: Criterion[] = [
   {
@@ -151,7 +151,8 @@ const availableStudents = students.filter(
           </div>
           <div class="flex items-center justify-between gap-4 sm:justify-end">
             <span class="text-sm text-muted-foreground truncate">
-              Signed in as <span class="text-foreground">{{ session.data?.user.name }}</span>
+              Signed in as
+              <span class="text-foreground">{{ consultant.name }}</span>
             </span>
             <Button
               variant="ghost"

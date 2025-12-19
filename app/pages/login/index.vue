@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { GraduationCap } from 'lucide-vue-next';
+
 </script>
 
 <template>
@@ -18,7 +19,6 @@ import { GraduationCap } from 'lucide-vue-next';
       </div>
 
       <LoginForm />
-
     </div>
   </div>
 </template>
