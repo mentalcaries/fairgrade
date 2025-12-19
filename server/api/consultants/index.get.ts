@@ -1,4 +1,4 @@
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '~/lib/database';
 import { consultants } from '~/lib/database/schema';
 
@@ -7,7 +7,9 @@ export default defineEventHandler(async () => {
     const allConsultants = await db
       .select()
       .from(consultants)
+      .where(eq(consultants.role, 'consultant'))
       .orderBy(desc(consultants.createdAt));
+
     return allConsultants;
   } catch (error) {
     console.error('Error fetching consultants:', error);
