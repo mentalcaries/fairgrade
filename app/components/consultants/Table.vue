@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types';
+import type { Consultant } from '~/types';
 import {
   Table,
   TableBody,
@@ -19,12 +19,12 @@ import {
 } from 'lucide-vue-next';
 
 interface Props {
-  consultants: Instructor[];
+  consultants: Consultant[];
   sendingInviteId: string | null;
 }
 
 interface Emits {
-  (e: 'edit' | 'delete' | 'sendInvite', consultant: Instructor): void;
+  (e: 'edit' | 'delete' | 'sendInvite', consultant: Consultant): void;
 }
 
 defineProps<Props>();
@@ -72,7 +72,7 @@ const emit = defineEmits<Emits>();
         </TableCell>
         <TableCell>
           <span
-            v-if="consultant.status === 'active'"
+            v-if="consultant.isActive"
             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
           >
             Active

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types';
+import type { Consultant } from '~/types';
 import {
   Card,
   CardContent,
@@ -10,80 +10,78 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
 import { useConsultantSorting } from '~/composables/useConsultantSorting';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'dashboard',
 });
-// Get mock data (replace with API calls later)
-const { instructors: consultants } = useMockData();
 
-// Sorting and filtering
+const { data: consultants, refresh } = await useFetch('/api/consultants', {
+  default: () => [],
+});
+
 const { searchTerm, filteredConsultants } = useConsultantSorting(consultants);
 
-// Dialog states
 const addDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const deleteDialogOpen = ref(false);
-const editingConsultant = ref<Instructor | null>(null);
-const deletingConsultant = ref<Instructor | null>(null);
+const editingConsultant = ref<Consultant | null>(null);
+const deletingConsultant = ref<Consultant | null>(null);
 const sendingInviteId = ref<string | null>(null);
 
-// Dialog handlers
-const openEditDialog = (consultant: Instructor) => {
+const openEditDialog = (consultant: Consultant) => {
   editingConsultant.value = consultant;
   editDialogOpen.value = true;
 };
 
-const openDeleteDialog = (consultant: Instructor) => {
+const openDeleteDialog = (consultant: Consultant) => {
   deletingConsultant.value = consultant;
   deleteDialogOpen.value = true;
 };
 
-// Submit handlers (these would call API in real app)
-const handleAddSubmit = (form: {
+const handleAddSubmit = async (form: {
   name: string;
   email: string;
-  status: 'active' | 'inactive';
+  isActive: boolean;
   sendInvite: boolean;
 }) => {
-  // addConsultant({
-  //   name: form.name,
-  //   email: form.email,
-  //   status: form.status,
-  //   assignedStudentIds: [],
-  //   assignedGroupIds: [],
-  // })
-  console.log('Add consultant:', form);
+  await $fetch('/api/consultants', {
+    method: 'POST',
+    body: form,
+  });
 
   addDialogOpen.value = false;
 
-  if (form.sendInvite) {
-    toast.success(`Invitation sent to ${form.email}`);
-  } else {
-    toast('Consultant added successfully');
-  }
+  toast.success(
+    form.sendInvite
+      ? `Invitation sent to ${form.email}`
+      : 'Consultant added successfully'
+  );
+  await refresh();
 };
 
-const handleEditSubmit = (form: {
+const handleEditSubmit = async (form: {
   name: string;
   email: string;
-  status: 'active' | 'inactive';
+  isActive: boolean;
 }) => {
   if (editingConsultant.value) {
     // updateConsultant(editingConsultant.value.id, form)
+    await $fetch<Consultant>(`/api/consultants/${editingConsultant.value.id}`, {
+      method: 'PATCH',
+      body: form,
+    });
     console.log('Update consultant:', editingConsultant.value.id, form);
 
     editDialogOpen.value = false;
+    await refresh();
     toast.success('Consultant updated successfully');
   }
 };
 
 const handleDelete = () => {
   if (deletingConsultant.value) {
-    // deleteConsultant(deletingConsultant.value.id)
     console.log('Delete consultant:', deletingConsultant.value.id);
 
     deleteDialogOpen.value = false;
@@ -92,7 +90,7 @@ const handleDelete = () => {
   }
 };
 
-const handleSendInvite = async (consultant: Instructor) => {
+const handleSendInvite = async (consultant: Consultant) => {
   sendingInviteId.value = consultant.id;
 
   // Simulate API call
@@ -135,7 +133,7 @@ const handleSendInvite = async (consultant: Instructor) => {
                 class="pl-10 w-64"
               />
             </div>
-            <Button @click="addDialogOpen = true">
+            <Button type="button" @click="addDialogOpen = true">
               <Plus class="h-4 w-4 mr-2" />
               Add Consultant
             </Button>

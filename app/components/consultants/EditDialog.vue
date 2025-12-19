@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types'
+import type { Consultant } from '~/types'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch'
 
 interface Props {
   open: boolean
-  consultant: Instructor | null
+  consultant: Consultant | null
 }
 
 interface Emits {
@@ -22,7 +22,7 @@ interface Emits {
   (e: 'submit', form: {
     name: string
     email: string
-    status: 'active' | 'inactive'
+    isActive: boolean
   }): void
 }
 
@@ -32,7 +32,7 @@ const emit = defineEmits<Emits>()
 const form = ref({
   name: '',
   email: '',
-  status: 'active' as 'active' | 'inactive',
+  isActive: false,
 })
 
 // Populate form when consultant changes
@@ -41,7 +41,7 @@ watch(() => props.consultant, (consultant) => {
     form.value = {
       name: consultant.name,
       email: consultant.email,
-      status: consultant.status,
+      isActive: consultant.isActive,
     }
   }
 }, { immediate: true })
@@ -82,11 +82,10 @@ const handleSubmit = () => {
           <Label>Status</Label>
           <div class="flex items-center gap-3">
             <Switch
-              :checked="form.status === 'active'"
-              @update:checked="form.status = $event ? 'active' : 'inactive'"
+              v-model="form.isActive"
             />
             <span class="text-sm">
-              <span v-if="form.status === 'active'" class="text-emerald-600 font-medium">
+              <span v-if="form.isActive" class="text-emerald-600 font-medium">
                 Active
               </span>
               <span v-else class="text-gray-500">
