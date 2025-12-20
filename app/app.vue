@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import 'vue-sonner/style.css';
 import { Toaster } from './components/ui/sonner';
 
 const title = 'FairGrade - Student Assessment Platform';
@@ -24,6 +25,6 @@ useSeoMeta({
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <Toaster />
   </NuxtLayout>
-  <Toaster />
 </template>

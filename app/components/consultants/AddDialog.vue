@@ -29,29 +29,25 @@ interface Emits {
   ): void;
 }
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const form = ref({
+const formInitialValues = {
   name: '',
   email: '',
   isActive: true,
   sendInvite: true,
-});
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const form = ref(formInitialValues);
 
 // Reset form when dialog closes
 watch(
   () => props.open,
   () => {
-    form.value = {
-      name: '',
-      email: '',
-      isActive: true,
-      sendInvite: true,
-    };
+    form.value = formInitialValues;
   }
 );
-console.log(form.value.sendInvite);
 
 const isSubmitDisabled = computed(() => {
   return !form.value.name || !form.value.email;
@@ -59,13 +55,7 @@ const isSubmitDisabled = computed(() => {
 
 const handleSubmit = () => {
   emit('submit', form.value);
-  // Reset form
-  form.value = {
-    name: '',
-    email: '',
-    isActive: true,
-    sendInvite: true,
-  };
+  form.value = formInitialValues;
 };
 </script>
 

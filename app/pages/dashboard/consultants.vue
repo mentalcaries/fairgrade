@@ -56,7 +56,7 @@ const handleAddSubmit = async (form: {
   toast.success(
     form.sendInvite
       ? `Invitation sent to ${form.email}`
-      : 'Consultant added successfully'
+      : "Consultant added. Don't forget to invite them."
   );
   await refresh();
 };
@@ -67,7 +67,6 @@ const handleEditSubmit = async (form: {
   isActive: boolean;
 }) => {
   if (editingConsultant.value) {
-    // updateConsultant(editingConsultant.value.id, form)
     await $fetch<Consultant>(`/api/consultants/${editingConsultant.value.id}`, {
       method: 'PATCH',
       body: form,
@@ -80,13 +79,24 @@ const handleEditSubmit = async (form: {
   }
 };
 
-const handleDelete = () => {
-  if (deletingConsultant.value) {
-    console.log('Delete consultant:', deletingConsultant.value.id);
+const handleDelete = async () => {
+  if (!deletingConsultant.value) return;
+
+  try {
+    await $fetch<Consultant>(
+      `/api/consultants/${deletingConsultant.value.id}`,
+      {
+        method: 'DELETE',
+      }
+    );
 
     deleteDialogOpen.value = false;
     deletingConsultant.value = null;
+    await refresh();
     toast.success('Consultant deleted');
+  } catch (error) {
+    console.error('Failed to delete consultant:', error);
+    toast.error('Failed to delete consultant');
   }
 };
 
