@@ -37,7 +37,7 @@ export interface StudentGroup {
 
 export interface Consultant {
   id: string;
-  userId: string;
+  userId: string | null;
   name: string;
   email: string;
   role: 'admin' | 'consultant';

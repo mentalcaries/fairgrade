@@ -13,7 +13,6 @@ export const roleEnum = pgEnum('role', ['admin', 'consultant']);
 export const consultants = pgTable('consultants', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: text('user_id')
-    .notNull()
     .references(() => user.id),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),

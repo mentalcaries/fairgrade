@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import type { ConsultantForm } from '~/types/forms'
 
 interface Props {
   open: boolean
@@ -19,11 +20,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:open', value: boolean): void
-  (e: 'submit', form: {
-    name: string
-    email: string
-    isActive: boolean
-  }): void
+  (e: 'submit', form: Partial<ConsultantForm>): void
 }
 
 const props = defineProps<Props>()

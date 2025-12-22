@@ -20,7 +20,7 @@ import {
 
 interface Props {
   consultants: Consultant[];
-  sendingInviteId: string | null;
+  sendingInviteEmail: string | null;
 }
 
 interface Emits {
@@ -97,11 +97,11 @@ const emit = defineEmits<Emits>();
               variant="outline"
               size="sm"
               class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 bg-transparent"
-              :disabled="sendingInviteId === consultant.id"
+              :disabled="sendingInviteEmail === consultant.email"
               @click="emit('sendInvite', consultant)"
             >
               <Loader2
-                v-if="sendingInviteId === consultant.id"
+                v-if="sendingInviteEmail === consultant.email"
                 class="h-4 w-4 animate-spin"
               />
               <template v-else>

@@ -42,21 +42,24 @@ const form = useForm({
 
 const onSubmit = form.handleSubmit(async (values) => {
   isSubmitting.value = true;
-  const { error } = await signIn.magicLink({
-    email: values.email,
-    callbackURL: '/dashboard',
-    errorCallbackURL: '/login',
-  });
-
-  if (error) {
+  try {
+    const { data } = await signIn.magicLink({
+      email: values.email,
+      callbackURL: '/dashboard',
+      errorCallbackURL: '/login',
+    });
+    if (data) {
+      await navigateTo(
+        `/login/check-email?email=${encodeURIComponent(values.email)}`
+      );
+    }
+  } catch (error) {
+    console.error('Magic link login failed', error);
     toast.error('Failed to send magic link. Please try again.');
     return;
+  } finally {
+    isSubmitting.value = false;
   }
-
-  await navigateTo(
-    `/login/check-email?email=${encodeURIComponent(values.email)}`
-  );
-  isSubmitting.value = false;
 });
 
 const handleGoogleSignIn = async () => {

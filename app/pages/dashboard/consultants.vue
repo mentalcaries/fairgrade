@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-vue-next';
 import { useConsultantSorting } from '~/composables/useConsultantSorting';
 import { toast } from 'vue-sonner';
+import type { ConsultantForm } from '~/types/forms';
 
 definePageMeta({
   layout: 'dashboard',
@@ -28,7 +29,7 @@ const editDialogOpen = ref(false);
 const deleteDialogOpen = ref(false);
 const editingConsultant = ref<Consultant | null>(null);
 const deletingConsultant = ref<Consultant | null>(null);
-const sendingInviteId = ref<string | null>(null);
+const sendingInviteEmail = ref<string | null>(null);
 
 const openEditDialog = (consultant: Consultant) => {
   editingConsultant.value = consultant;
@@ -40,42 +41,40 @@ const openDeleteDialog = (consultant: Consultant) => {
   deleteDialogOpen.value = true;
 };
 
-const handleAddSubmit = async (form: {
-  name: string;
-  email: string;
-  isActive: boolean;
-  sendInvite: boolean;
-}) => {
-  await $fetch('/api/consultants', {
-    method: 'POST',
-    body: form,
-  });
+const handleAddSubmit = async (form: ConsultantForm) => {
+  try {
+    const newConsultant = await $fetch('/api/consultants', {
+      method: 'POST',
+      body: form,
+    });
 
-  addDialogOpen.value = false;
-
-  toast.success(
-    form.sendInvite
-      ? `Invitation sent to ${form.email}`
-      : "Consultant added. Don't forget to invite them."
-  );
-  await refresh();
+    if (newConsultant && form.sendInvite) {
+      await handleSendInvite(newConsultant);
+    } else {
+      toast.success("Consultant added. Don't forget to invite them.");
+    }
+    addDialogOpen.value = false;
+    await refresh();
+  } catch (error) {
+    toast.error('Unable to add consultant');
+    console.error('Error adding consultant:', error);
+  }
 };
 
-const handleEditSubmit = async (form: {
-  name: string;
-  email: string;
-  isActive: boolean;
-}) => {
-  if (editingConsultant.value) {
+const handleEditSubmit = async (form: Partial<ConsultantForm>) => {
+  if (!editingConsultant.value) return;
+
+  try {
     await $fetch<Consultant>(`/api/consultants/${editingConsultant.value.id}`, {
       method: 'PATCH',
       body: form,
     });
-    console.log('Update consultant:', editingConsultant.value.id, form);
-
     editDialogOpen.value = false;
     await refresh();
     toast.success('Consultant updated successfully');
+  } catch (error) {
+    console.error('Failed to delete consultant:', error);
+    toast.error('Unable to update consultant');
   }
 };
 
@@ -101,13 +100,23 @@ const handleDelete = async () => {
 };
 
 const handleSendInvite = async (consultant: Consultant) => {
-  sendingInviteId.value = consultant.id;
+  sendingInviteEmail.value = consultant.email;
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    await sendEmailInvite(consultant.email, consultant.name);
+    sendingInviteEmail.value = null;
+    toast(`Invitation sent to ${consultant.email}`);
+  } catch (error) {
+    console.error('Failed to invite consultant:', error);
+    toast.error('Failed to invite consultant');
+  }
+};
 
-  sendingInviteId.value = null;
-  toast(`Invitation sent to ${consultant.email}`);
+const sendEmailInvite = async (email: string, name: string) => {
+  await $fetch('/api/consultants/invite', {
+    method: 'POST',
+    body: { email, name },
+  });
 };
 </script>
 
@@ -154,7 +163,7 @@ const handleSendInvite = async (consultant: Consultant) => {
       <CardContent>
         <ConsultantsTable
           :consultants="filteredConsultants"
-          :sending-invite-id="sendingInviteId"
+          :sending-invite-email="sendingInviteEmail"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
           @send-invite="handleSendInvite"
