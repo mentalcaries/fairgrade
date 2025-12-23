@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Consultant } from '~/types';
+import { FetchError } from 'ofetch'
 import {
   Card,
   CardContent,
@@ -56,7 +57,8 @@ const handleAddSubmit = async (form: ConsultantForm) => {
     addDialogOpen.value = false;
     await refresh();
   } catch (error) {
-    toast.error('Unable to add consultant');
+    const message = error instanceof FetchError ? error.statusMessage : 'Unknown error';
+    toast.error(`Unable to add consultant: ${message}`);
     console.error('Error adding consultant:', error);
   }
 };
