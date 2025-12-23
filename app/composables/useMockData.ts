@@ -142,30 +142,30 @@ export function useMockData() {
     { id: 'g2', name: 'Group Beta', studentIds: ['s5', 's6'] },
   ];
 
-  const instructors: Consultant[] = [
+  const consultants: Consultant[] = [
     {
       id: 'i1',
       name: 'Dr. Shane Khan',
       email: 'tanqueray@university.edu',
-      status: 'active',
-      assignedStudentIds: ['s1', 's2'],
-      assignedGroupIds: ['g1'],
+      isActive: true,
+      userId: '123',
+      role: 'admin'
     },
     {
       id: 'i2',
       name: 'Prof. Zalim',
       email: 'qa@university.edu',
-      status: 'active',
-      assignedStudentIds: ['s3', 's4'],
-      assignedGroupIds: [],
+      isActive: true,
+      userId: '1234',
+      role: 'consultant'
     },
     {
       id: 'i3',
       name: 'Dr. Shazzy',
       email: 'shazman@university.edu',
-      status: 'inactive',
-      assignedStudentIds: [],
-      assignedGroupIds: [],
+      isActive: true,
+      userId: '12345',
+      role: 'consultant'
     },
   ];
 
@@ -350,7 +350,7 @@ export function useMockData() {
     students,
     units,
     groups,
-    instructors,
+    consultants,
     assessments,
     academicYears,
   };

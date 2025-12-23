@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AcademicYear } from '~/types';
+import type { Class } from '~/types';
 import type { WizardData } from '~/types/wizard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,24 +34,7 @@ const archivedYears = computed(() => academicYears.filter((y) => !y.isActive));
 
 // Handlers
 const handleCreateYear = (data: WizardData) => {
-  const newYear: Omit<AcademicYear, 'id'> = {
-    name: data.yearName,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    isActive: true,
-    rotationGroups: data.groups.map((g, index) => ({
-      id: `rg${Date.now()}_${index}`,
-      name: g.name,
-      startDate: g.startDate,
-      endDate: g.endDate,
-      unitCount: 0,
-      studentCount: 0,
-      gradedCount: 0,
-      status: 'pending' as const,
-    })),
-  };
-  // addAcademicYear(newYear)
-  console.log('Create academic year:', newYear);
+
 };
 
 const handleManageGroup = (yearId: string, groupId: string) => {

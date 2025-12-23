@@ -7,18 +7,18 @@ definePageMeta({
   layout:'dashboard'
 })
 // Get mock data (replace with API calls later)
-const { students, instructors, assessments, academicYears, units } = useMockData()
+const { students, consultants, assessments, academicYears, units } = useMockData()
 
 // Get active academic year
 const activeYear = computed(() => academicYears.find((y) => y.isActive))
 
 // Calculate stats
-const { stats } = useDashboardStats(students, instructors, assessments)
+const { stats } = useDashboardStats(students, consultants, assessments)
 
 // Calculate pending actions
 const { pendingActions } = usePendingActions(
   students,
-  instructors,
+  consultants,
   units,
   assessments,
   activeYear.value

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Info } from 'lucide-vue-next';
-import { GROUP_NAMES } from '~/types/wizard';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -31,11 +30,10 @@ const data = ref<WizardData>({
   yearName: '',
   startDate: '',
   endDate: '',
-  groups: GROUP_NAMES.map((name) => ({ name, startDate: '', endDate: '' })),
 });
 
 const handleNext = () => {
-  step.value = Math.min(step.value + 1, 3);
+  step.value = Math.min(step.value + 1, 2);
 };
 
 const handleBack = () => {
@@ -52,17 +50,10 @@ const handleSubmit = () => {
     yearName: '',
     startDate: '',
     endDate: '',
-    groups: GROUP_NAMES.map((name) => ({ name, startDate: '', endDate: '' })),
   };
 };
 
-const updateGroup = (
-  index: number,
-  field: 'startDate' | 'endDate',
-  value: string
-) => {
-  if (data.value.groups[index]) data.value.groups[index][field] = value;
-};
+
 
 const isStep1Valid = computed(() => {
   return data.value.yearName && data.value.startDate && data.value.endDate;
@@ -74,11 +65,11 @@ const isStep1Valid = computed(() => {
     <DialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogDescription class="text-sm"
-          >Step {{ step }} of 3</DialogDescription
+          >Step {{ step }} of 2</DialogDescription
         >
         <div class="flex gap-2 mt-2">
           <div
-            v-for="s in [1, 2, 3]"
+            v-for="s in [1, 2]"
             :key="s"
             :class="
               cn(
@@ -120,61 +111,8 @@ const isStep1Valid = computed(() => {
         </div>
       </div>
 
-      <!-- Step 2: Add Groups -->
-      <div v-if="step === 2" class="space-y-6 py-4">
-        <div>
-          <DialogTitle class="text-xl">Add Rotation Groups</DialogTitle>
-          <p class="text-sm text-muted-foreground mt-1">
-            Create 6 groups (A through F) with their rotation dates
-          </p>
-        </div>
-        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-          <div
-            v-for="(group, index) in data.groups"
-            :key="group.name"
-            class="p-4 border border-border rounded-lg space-y-3"
-          >
-            <h4 class="font-medium">Group {{ group.name }}</h4>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <Label class="text-xs">Start Date</Label>
-                <Input
-                  type="date"
-                  :value="group.startDate"
-                  @input="
-                    updateGroup(
-                      index,
-                      'startDate',
-                      ($event.target as HTMLInputElement).value
-                    )
-                  "
-                />
-              </div>
-              <div class="space-y-1">
-                <Label class="text-xs">End Date</Label>
-                <Input
-                  type="date"
-                  :value="group.endDate"
-                  @input="
-                    updateGroup(
-                      index,
-                      'endDate',
-                      ($event.target as HTMLInputElement).value
-                    )
-                  "
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-between pt-2">
-          <Button variant="outline" @click="handleBack"> Back </Button>
-          <Button @click="handleNext"> Next: Review </Button>
-        </div>
-      </div>
 
-      <!-- Step 3: Review -->
-      <div v-if="step === 3" class="space-y-6 py-4">
+      <div v-if="step === 2" class="space-y-6 py-4">
         <div>
           <DialogTitle class="text-xl">Review & Create</DialogTitle>
           <p class="text-sm text-muted-foreground mt-1">

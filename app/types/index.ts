@@ -59,21 +59,19 @@ export interface Assessment {
 export interface RotationGroup {
   id: string;
   name: string;
+  classId: string;
   startDate: string;
   endDate: string;
-  unitCount: number;
-  studentCount: number;
-  gradedCount: number;
-  status: 'pending' | 'active' | 'complete';
+  isActive: boolean;
+
 }
 
-export interface AcademicYear {
+export interface Class {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
   isActive: boolean;
-  rotationGroups: RotationGroup[];
 }
 
 export interface PendingAction {
