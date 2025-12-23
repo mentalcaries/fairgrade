@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Consultant } from '~/types';
-import { FetchError } from 'ofetch'
+import { FetchError } from 'ofetch';
 import {
   Card,
   CardContent,
@@ -14,12 +14,17 @@ import { Plus, Search } from 'lucide-vue-next';
 import { useConsultantSorting } from '~/composables/useConsultantSorting';
 import { toast } from 'vue-sonner';
 import type { ConsultantForm } from '~/types/forms';
+import type { Spinner } from '~/components/ui/spinner';
 
 definePageMeta({
   layout: 'dashboard',
 });
 
-const { data: consultants, refresh } = await useFetch('/api/consultants', {
+const {
+  data: consultants,
+  refresh,
+  pending,
+} = await useFetch('/api/consultants', {
   default: () => [],
 });
 
@@ -57,7 +62,8 @@ const handleAddSubmit = async (form: ConsultantForm) => {
     addDialogOpen.value = false;
     await refresh();
   } catch (error) {
-    const message = error instanceof FetchError ? error.statusMessage : 'Unknown error';
+    const message =
+      error instanceof FetchError ? error.statusMessage : 'Unknown error';
     toast.error(`Unable to add consultant: ${message}`);
     console.error('Error adding consultant:', error);
   }
@@ -123,7 +129,8 @@ const sendEmailInvite = async (email: string, name: string) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <Spinner v-if="pending" />
+  <div v-else class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold text-foreground">Consultants</h1>
       <p class="text-muted-foreground mt-1">
