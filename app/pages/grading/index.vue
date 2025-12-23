@@ -24,7 +24,6 @@ import {
 import { signOut } from '~/lib/auth-client';
 
 const { data: consultant } = await useFetch('/api/consultants/me');
-console.log(consultant);
 
 const scores = ref<Record<ScoreKey, number>>({
   criterion1: 50,

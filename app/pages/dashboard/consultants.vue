@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types';
+import type { Consultant } from '~/types';
+import { FetchError } from 'ofetch';
 import {
   Card,
   CardContent,
@@ -10,101 +11,126 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
 import { useConsultantSorting } from '~/composables/useConsultantSorting';
 import { toast } from 'vue-sonner';
+import type { ConsultantForm } from '~/types/forms';
+import type { Spinner } from '~/components/ui/spinner';
 
 definePageMeta({
   layout: 'dashboard',
 });
-// Get mock data (replace with API calls later)
-const { instructors: consultants } = useMockData();
 
-// Sorting and filtering
+const {
+  data: consultants,
+  refresh,
+  pending,
+} = await useFetch('/api/consultants', {
+  default: () => [],
+});
+
 const { searchTerm, filteredConsultants } = useConsultantSorting(consultants);
 
-// Dialog states
 const addDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const deleteDialogOpen = ref(false);
-const editingConsultant = ref<Instructor | null>(null);
-const deletingConsultant = ref<Instructor | null>(null);
-const sendingInviteId = ref<string | null>(null);
+const editingConsultant = ref<Consultant | null>(null);
+const deletingConsultant = ref<Consultant | null>(null);
+const sendingInviteEmail = ref<string | null>(null);
 
-// Dialog handlers
-const openEditDialog = (consultant: Instructor) => {
+const openEditDialog = (consultant: Consultant) => {
   editingConsultant.value = consultant;
   editDialogOpen.value = true;
 };
 
-const openDeleteDialog = (consultant: Instructor) => {
+const openDeleteDialog = (consultant: Consultant) => {
   deletingConsultant.value = consultant;
   deleteDialogOpen.value = true;
 };
 
-// Submit handlers (these would call API in real app)
-const handleAddSubmit = (form: {
-  name: string;
-  email: string;
-  status: 'active' | 'inactive';
-  sendInvite: boolean;
-}) => {
-  // addConsultant({
-  //   name: form.name,
-  //   email: form.email,
-  //   status: form.status,
-  //   assignedStudentIds: [],
-  //   assignedGroupIds: [],
-  // })
-  console.log('Add consultant:', form);
+const handleAddSubmit = async (form: ConsultantForm) => {
+  try {
+    const newConsultant = await $fetch('/api/consultants', {
+      method: 'POST',
+      body: form,
+    });
 
-  addDialogOpen.value = false;
-
-  if (form.sendInvite) {
-    toast.success(`Invitation sent to ${form.email}`);
-  } else {
-    toast('Consultant added successfully');
+    if (newConsultant && form.sendInvite) {
+      await handleSendInvite(newConsultant);
+    } else {
+      toast.success("Consultant added. Don't forget to invite them.");
+    }
+    addDialogOpen.value = false;
+    await refresh();
+  } catch (error) {
+    const message =
+      error instanceof FetchError ? error.statusMessage : 'Unknown error';
+    toast.error(`Unable to add consultant: ${message}`);
+    console.error('Error adding consultant:', error);
   }
 };
 
-const handleEditSubmit = (form: {
-  name: string;
-  email: string;
-  status: 'active' | 'inactive';
-}) => {
-  if (editingConsultant.value) {
-    // updateConsultant(editingConsultant.value.id, form)
-    console.log('Update consultant:', editingConsultant.value.id, form);
+const handleEditSubmit = async (form: Partial<ConsultantForm>) => {
+  if (!editingConsultant.value) return;
 
+  try {
+    await $fetch<Consultant>(`/api/consultants/${editingConsultant.value.id}`, {
+      method: 'PATCH',
+      body: form,
+    });
     editDialogOpen.value = false;
+    await refresh();
     toast.success('Consultant updated successfully');
+  } catch (error) {
+    console.error('Failed to delete consultant:', error);
+    toast.error('Unable to update consultant');
   }
 };
 
-const handleDelete = () => {
-  if (deletingConsultant.value) {
-    // deleteConsultant(deletingConsultant.value.id)
-    console.log('Delete consultant:', deletingConsultant.value.id);
+const handleDelete = async () => {
+  if (!deletingConsultant.value) return;
+
+  try {
+    await $fetch<Consultant>(
+      `/api/consultants/${deletingConsultant.value.id}`,
+      {
+        method: 'DELETE',
+      }
+    );
 
     deleteDialogOpen.value = false;
     deletingConsultant.value = null;
+    await refresh();
     toast.success('Consultant deleted');
+  } catch (error) {
+    console.error('Failed to delete consultant:', error);
+    toast.error('Failed to delete consultant');
   }
 };
 
-const handleSendInvite = async (consultant: Instructor) => {
-  sendingInviteId.value = consultant.id;
+const handleSendInvite = async (consultant: Consultant) => {
+  sendingInviteEmail.value = consultant.email;
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    await sendEmailInvite(consultant.email, consultant.name);
+    sendingInviteEmail.value = null;
+    toast(`Invitation sent to ${consultant.email}`);
+  } catch (error) {
+    console.error('Failed to invite consultant:', error);
+    toast.error('Failed to invite consultant');
+  }
+};
 
-  sendingInviteId.value = null;
-  toast(`Invitation sent to ${consultant.email}`);
+const sendEmailInvite = async (email: string, name: string) => {
+  await $fetch('/api/consultants/invite', {
+    method: 'POST',
+    body: { email, name },
+  });
 };
 </script>
 
 <template>
-  <div class="space-y-6">
+  <Spinner v-if="pending" />
+  <div v-else class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold text-foreground">Consultants</h1>
       <p class="text-muted-foreground mt-1">
@@ -135,7 +161,7 @@ const handleSendInvite = async (consultant: Instructor) => {
                 class="pl-10 w-64"
               />
             </div>
-            <Button @click="addDialogOpen = true">
+            <Button type="button" @click="addDialogOpen = true">
               <Plus class="h-4 w-4 mr-2" />
               Add Consultant
             </Button>
@@ -146,7 +172,7 @@ const handleSendInvite = async (consultant: Instructor) => {
       <CardContent>
         <ConsultantsTable
           :consultants="filteredConsultants"
-          :sending-invite-id="sendingInviteId"
+          :sending-invite-email="sendingInviteEmail"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
           @send-invite="handleSendInvite"

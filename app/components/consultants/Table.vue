@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Instructor } from '~/types';
+import type { Consultant } from '~/types';
 import {
   Table,
   TableBody,
@@ -19,12 +19,12 @@ import {
 } from 'lucide-vue-next';
 
 interface Props {
-  consultants: Instructor[];
-  sendingInviteId: string | null;
+  consultants: Consultant[];
+  sendingInviteEmail: string | null;
 }
 
 interface Emits {
-  (e: 'edit' | 'delete' | 'sendInvite', consultant: Instructor): void;
+  (e: 'edit' | 'delete' | 'sendInvite', consultant: Consultant): void;
 }
 
 defineProps<Props>();
@@ -72,7 +72,7 @@ const emit = defineEmits<Emits>();
         </TableCell>
         <TableCell>
           <span
-            v-if="consultant.status === 'active'"
+            v-if="consultant.isActive"
             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
           >
             Active
@@ -97,11 +97,11 @@ const emit = defineEmits<Emits>();
               variant="outline"
               size="sm"
               class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 bg-transparent"
-              :disabled="sendingInviteId === consultant.id"
+              :disabled="sendingInviteEmail === consultant.email"
               @click="emit('sendInvite', consultant)"
             >
               <Loader2
-                v-if="sendingInviteId === consultant.id"
+                v-if="sendingInviteEmail === consultant.email"
                 class="h-4 w-4 animate-spin"
               />
               <template v-else>

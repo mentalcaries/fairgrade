@@ -1,10 +1,10 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from './database';
-import { magicLink } from 'better-auth/plugins';
+import {  magicLink } from 'better-auth/plugins';
 import * as schema from '~/lib/database/schema';
-import { Resend } from 'resend';
-import { verificationEmailHtml } from './email-template';
+import { verificationEmailHtml } from './email/verify-email-template';
+import { resend } from './email/email-client';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -14,7 +14,6 @@ export const auth = betterAuth({
   plugins: [
     magicLink({
       sendMagicLink: async ({ email, url }) => {
-        const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
           from: 'FairGrade Assessments <no-reply@verify.fscx.cloud>',
           to: email,

@@ -35,13 +35,13 @@ export interface StudentGroup {
   studentIds: string[];
 }
 
-export interface Instructor {
+export interface Consultant {
   id: string;
+  userId: string | null;
   name: string;
   email: string;
-  status: 'active' | 'inactive';
-  assignedStudentIds: string[];
-  assignedGroupIds: string[];
+  role: 'admin' | 'consultant';
+  isActive: boolean;
 }
 
 export interface Assessment {
