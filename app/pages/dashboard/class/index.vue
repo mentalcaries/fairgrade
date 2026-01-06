@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Class } from '~/types';
 import type { WizardData } from '~/types/wizard';
+import { FetchError } from 'ofetch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,26 +15,52 @@ import {
   ChevronRight,
   Archive,
 } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
+import type { Class } from '~/types';
+import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'dashboard',
 });
 
-// Get mock data (replace with API calls later)
-const { academicYears } = useMockData();
+const { data: classes, refresh } = useFetch<Class[]>('/api/classes', {
+  default: () => [],
+});
 
 // Dialog states
 const wizardOpen = ref(false);
 const archivedOpen = ref(false);
+const isCreating = ref(false);
 
 // Filter years
-const activeYear = computed(() => academicYears.find((y) => y.isActive));
-const archivedYears = computed(() => academicYears.filter((y) => !y.isActive));
+const activeYear = computed(() => classes.value.find((y) => y.isActive));
+const archivedYears = computed(() => classes.value.filter((y) => !y.isActive));
 
 // Handlers
-const handleCreateYear = (data: WizardData) => {
+const handleCreateYear = async (data: WizardData) => {
+  isCreating.value = true;
 
+  try {
+    const response = await $fetch<Class>('/api/classes', {
+      method: 'POST',
+      body: {
+        name: data.yearName,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      },
+    });
+
+    toast.success('Academic year created successfully');
+    await refresh();
+    navigateTo(`/dashboard/class/${response.id}`);
+  } catch (error) {
+    const message =
+      error instanceof FetchError
+        ? error.statusMessage
+        : 'Unable to create Class 😔';
+    toast.error(`Error creating class: ${message}`);
+  } finally {
+    isCreating.value = false;
+  }
 };
 
 const handleManageGroup = (yearId: string, groupId: string) => {
@@ -145,6 +171,7 @@ const formatDate = (dateString: string) => {
     <!-- Wizard Dialog -->
     <ClassCreateWizard
       v-model:open="wizardOpen"
+      :loading="isCreating"
       @submit="handleCreateYear"
     />
   </div>
