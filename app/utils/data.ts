@@ -57,6 +57,7 @@ export interface Assessment {
 
 export interface RotationGroup {
   id: string;
+  classId: string;
   name: string;
   startDate: string;
   endDate: string;
@@ -272,7 +273,7 @@ export const initialAssessments: Assessment[] = [
   },
 ];
 
-export const initialAcademicYears: AcademicYear[] = [
+export const initialAcademicYears= [
   {
     id: 'ay1',
     name: '2024-2025',

@@ -106,7 +106,7 @@ const isStep1Valid = computed(() => {
         </div>
         <div class="flex justify-end">
           <Button :disabled="!isStep1Valid" @click="handleNext">
-            Next: Add Groups
+            Next: Confirm
           </Button>
         </div>
       </div>
