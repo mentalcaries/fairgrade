@@ -2,7 +2,7 @@
 import type { RotationGroup } from '~/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar } from 'lucide-vue-next';
+import { Users, Calendar, PencilIcon } from 'lucide-vue-next';
 
 interface Props {
   group: RotationGroup;
@@ -10,7 +10,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'manage'): void;
+  (e: 'manage' | 'editDates'): void;
 }
 
 const props = defineProps<Props>();
@@ -43,11 +43,31 @@ const formatDate = (dateString: string) => {
     </CardHeader>
 
     <CardContent class="space-y-4">
-      <div class="flex items-center gap-2 text-sm text-muted-foreground">
-        <Calendar class="h-4 w-4" />
-        <span>
-          {{ formatDate(group.startDate) }} - {{ formatDate(group.endDate) }}
-        </span>
+      <div class="flex items-center gap-2">
+        <!-- Show dates with edit button if dates exist -->
+        <template v-if="group.startDate && group.endDate">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar class="h-4 w-4" />
+            <span>
+              {{ formatDate(group.startDate) }} -
+              {{ formatDate(group.endDate) }}
+            </span>
+          </div>
+          <Button variant="ghost" size="sm" @click.stop="emit('editDates')">
+            <PencilIcon />
+          </Button>
+        </template>
+
+        <!-- Show "Set Dates" button if dates don't exist -->
+        <Button
+          v-else
+          variant="outline"
+          size="sm"
+          @click.stop="emit('editDates')"
+        >
+          <Calendar class="h-4 w-4 mr-2" />
+          Set Dates
+        </Button>
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-sm">

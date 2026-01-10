@@ -35,6 +35,11 @@ const activeYearRotationGroups = computed(
 const wizardOpen = ref(false);
 const archivedOpen = ref(false);
 const isCreating = ref(false);
+const editDatesDialogOpen = ref(false);
+const selectedGroupForEdit = ref<RotationGroup | null>(null);
+const refreshRotationGroups = inject<() => Promise<void>>(
+  'refreshRotationGroups'
+)!;
 
 // Filter years
 const activeYear = computed(() => classes.value.find((y) => y.isActive));
@@ -70,6 +75,15 @@ const handleCreateYear = async (data: WizardData) => {
 
 const handleManageGroup = (yearId: string, groupId: string) => {
   navigateTo(`/dashboard/class/${yearId}/groups/${groupId}`);
+};
+
+const handleEditDates = (group: RotationGroup) => {
+  selectedGroupForEdit.value = group;
+  editDatesDialogOpen.value = true;
+};
+
+const handleDatesUpdated = async () => {
+  await refreshRotationGroups();
 };
 
 const formatDate = (dateString: string) => {
@@ -116,6 +130,7 @@ const formatDate = (dateString: string) => {
           :group="group"
           :year-id="activeYear.id"
           @manage="handleManageGroup(activeYear.id, group.id)"
+          @editDates="handleEditDates(group)"
         />
       </div>
     </div>
@@ -173,11 +188,16 @@ const formatDate = (dateString: string) => {
       </CollapsibleContent>
     </Collapsible>
 
-    <!-- Wizard Dialog -->
     <ClassCreateWizard
       v-model:open="wizardOpen"
       :loading="isCreating"
       @submit="handleCreateYear"
+    />
+    <ClassEditRotationGroupDatesDialog
+      v-if="selectedGroupForEdit"
+      v-model:open="editDatesDialogOpen"
+      :group="selectedGroupForEdit"
+      @updated="handleDatesUpdated"
     />
   </div>
 </template>
