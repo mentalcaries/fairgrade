@@ -22,9 +22,14 @@ definePageMeta({
   layout: 'dashboard',
 });
 
-const { data: classes, refresh } = useFetch<Class[]>('/api/classes', {
-  default: () => [],
-});
+const classes = inject<Ref<Class[]>>('classes')!;
+const refreshClasses = inject<() => Promise<void>>('refreshClasses')!;
+const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+const activeYearRotationGroups = computed(
+  () =>
+    rotationGroups.value?.filter((g) => g.classId === activeYear.value?.id) ||
+    []
+);
 
 // Dialog states
 const wizardOpen = ref(false);
@@ -50,7 +55,7 @@ const handleCreateYear = async (data: WizardData) => {
     });
 
     toast.success('Academic year created successfully');
-    await refresh();
+    await refreshClasses();
     navigateTo(`/dashboard/class/${response.id}`);
   } catch (error) {
     const message =
@@ -106,7 +111,7 @@ const formatDate = (dateString: string) => {
 
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ClassRotationGroupCard
-          v-for="group in activeYear.rotationGroups"
+          v-for="group in activeYearRotationGroups"
           :key="group.id"
           :group="group"
           :year-id="activeYear.id"

@@ -62,8 +62,6 @@ export interface RotationGroup {
   classId: string;
   startDate: string;
   endDate: string;
-  isActive: boolean;
-
 }
 
 export interface Class {

@@ -4,39 +4,34 @@ import { HOSPITALS } from '~/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, Upload, Users, Building2 } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'dashboard',
 });
 
-// Get route params
 const route = useRoute();
 const router = useRouter();
 const yearId = route.params.yearId as string;
 const groupId = route.params.groupId as string;
 
-// Get mock data
-const { academicYears, units, students, instructors } = useMockData();
+const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
 
-// Find academic year and group
-const academicYear = computed(() => academicYears.find((y) => y.id === yearId));
 const rotationGroup = computed(() =>
-  academicYear.value?.rotationGroups.find((g) => g.id === groupId)
+  rotationGroups.value?.find((g) => g.id === groupId)
 );
+
+if (!rotationGroup.value) {
+  throw createError({ statusCode: 404, message: 'Rotation group not found' });
+}
 
 // Filter data for this group
 const groupUnits = computed(() =>
-  units.filter(
-    (c) => c.rotationGroupId === groupId && c.classId === yearId
-  )
+  units.filter((c) => c.rotationGroupId === groupId && c.classId === yearId)
 );
 
 const groupStudents = computed(() =>
-  students.filter(
-    (s) => s.rotationGroupId === groupId && s.classId === yearId
-  )
+  students.filter((s) => s.rotationGroupId === groupId && s.classId === yearId)
 );
 
 const unassignedStudents = computed(() =>
@@ -140,11 +135,6 @@ const formatDate = (dateString: string) => {
     year: 'numeric',
   });
 };
-
-// Handle not found
-if (!academicYear.value || !rotationGroup.value) {
-  throw createError({ statusCode: 404, message: 'Group not found' });
-}
 </script>
 
 <template>
