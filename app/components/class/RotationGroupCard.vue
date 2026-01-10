@@ -29,16 +29,34 @@ const formatDate = (dateString: string) => {
     year: 'numeric',
   });
 };
+
+const isCurrent = computed(() => {
+  if (!props.group.startDate || !props.group.endDate) return false;
+
+  const today = new Date();
+  const start = new Date(props.group.startDate);
+  const end = new Date(props.group.endDate);
+
+  return today >= start && today <= end;
+});
 </script>
 
 <template>
   <Card class="bg-card border-border hover:shadow-md transition-shadow">
     <CardHeader class="pb-3">
       <div class="flex items-center justify-between">
-        <CardTitle class="text-lg font-semibold"
-          >Group {{ group.name }}</CardTitle
-        >
-        <!-- <ClassStatusBadge :status="group.status" /> -->
+        <div class="flex items-center gap-2">
+          <CardTitle class="text-lg font-semibold"
+            >Group {{ group.name }}</CardTitle
+          >
+          <span
+            v-if="isCurrent"
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
+          >
+            Current
+          </span>
+          <!-- <ClassStatusBadge :status="group.status" /> -->
+        </div>
       </div>
     </CardHeader>
 
