@@ -8,12 +8,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useStudentFilters } from '~/composables/useStudentFilters';
+import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'dashboard',
 });
 
 const students = inject<Ref<StudentWithUnit[]>>('students')!;
+const refreshStudents = inject<() => Promise<void>>('refreshStudents')!;
 
 const { searchTerm, groupFilter, unitFilter, filteredStudents } =
   useStudentFilters(students);
@@ -32,25 +34,54 @@ const openStudentDialog = (student?: StudentWithUnit) => {
   studentDialogOpen.value = true;
 };
 
-// Submit Handlers
-const handleStudentSubmit = (form: {
+const handleStudentSubmit = async (form: {
   firstName: string;
   lastName: string;
   studentId: string;
 }) => {
-  if (editingStudent.value) {
-    console.log('Update student:', editingStudent.value.id, form);
-  } else {
-    console.log('Add student:', form);
+  try {
+    if (editingStudent.value) {
+      await $fetch(`/api/students/${editingStudent.value.id}`, {
+        method: 'PATCH',
+        body: form,
+      });
+      toast.success('Student updated successfully');
+    } else {
+      await $fetch('/api/students', {
+        method: 'POST',
+        body: form,
+      });
+      toast.success('Student added successfully');
+    }
+
+    studentDialogOpen.value = false;
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { statusCode?: number; data?: { message?: string } };
+
+    if (err.statusCode === 409) {
+      toast.error('A student with this ID already exists');
+    } else {
+      toast.error(err.data?.message || 'Failed to save student');
+    }
   }
-  studentDialogOpen.value = false;
 };
 
-const handleDeleteStudent = () => {
-  if (deleteStudentId.value) {
-    console.log('Delete student:', deleteStudentId.value);
+const handleDeleteStudent = async () => {
+  if (!deleteStudentId.value) return;
+
+  try {
+    await $fetch(`/api/students/${deleteStudentId.value}`, {
+      method: 'DELETE',
+    });
+
+    toast.success('Student deleted successfully');
     deleteDialogOpen.value = false;
     deleteStudentId.value = null;
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to delete student');
   }
 };
 </script>

@@ -1,71 +1,60 @@
 import { db } from '~/lib/database';
 import { students } from '~/lib/database/schema';
-import { bulkCreateStudentsSchema } from '~~/server/utils/validation/students';
+import { z } from 'zod';
 import { DrizzleQueryError } from 'drizzle-orm';
 
+const bulkImportSchema = z.object({
+  students: z.array(
+    z.object({
+      firstName: z.string().min(1),
+      lastName: z.string().min(1),
+      studentId: z.string().min(1),
+    })
+  ),
+  classId: z.string().uuid(),
+  rotationGroupId: z.string().uuid(),
+});
+
 export default defineEventHandler(async (event) => {
-  try {
-    const body = await readBody(event);
-    const validatedData = bulkCreateStudentsSchema.parse(body);
+  const body = await readBody(event);
+  const validatedData = bulkImportSchema.parse(body);
 
-    const newStudents = await db
-      .insert(students)
-      .values(
-        validatedData.students.map((student) => ({
-          firstName: student.firstName,
-          lastName: student.lastName,
-          studentId: student.studentId,
-          classId: validatedData.classId,
-          rotationGroupId: validatedData.rotationGroupId,
-          unitId: null, // Will be assigned later
-        }))
-      )
-      .returning();
+  const results = {
+    success: [] as Array<{ studentId: string; firstName: string; lastName: string }>,
+    failed: [] as Array<{ studentId: string; firstName: string; lastName: string; reason: string }>,
+  };
 
-    return {
-      success: true,
-      count: newStudents.length,
-      students: newStudents,
-    };
-  } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
-      throw createError({
-        statusCode: 400,
-        message: 'Validation failed',
-        data: error,
+  for (const student of validatedData.students) {
+    try {
+      await db.insert(students).values({
+        firstName: student.firstName,
+        lastName: student.lastName,
+        studentId: student.studentId,
+        classId: validatedData.classId,
+        rotationGroupId: validatedData.rotationGroupId,
+        unitId: null,
+      });
+
+      results.success.push(student);
+    } catch (error) {
+      if (error instanceof DrizzleQueryError) {
+        const cause = error.cause as { code?: string };
+        
+        if (cause?.code === '23505') {
+          results.failed.push({
+            ...student,
+            reason: 'Student ID already exists',
+          });
+          continue;
+        }
+      }
+
+      results.failed.push({
+        ...student,
+        reason: 'Failed to import',
       });
     }
-
-    if (error instanceof DrizzleQueryError) {
-      const cause = error.cause as { code?: string; constraint?: string };
-
-      if (cause?.code === '23505') {
-        throw createError({
-          statusCode: 409,
-          message: 'One or more student IDs already exist',
-        });
-      }
-
-      if (cause?.code === '23503') {
-        let message = 'Invalid reference';
-
-        if (cause.constraint?.includes('class')) {
-          message = 'Invalid class ID';
-        } else if (cause.constraint?.includes('rotation_group')) {
-          message = 'Invalid rotation group ID';
-        }
-
-        throw createError({
-          statusCode: 400,
-          message,
-        });
-      }
-    }
-
-    console.error('Error bulk creating students:', error);
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to bulk create students',
-    });
   }
+
+  return results;
 });
