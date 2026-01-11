@@ -1,41 +1,36 @@
 import { db } from '~/lib/database';
 import { students } from '~/lib/database/schema';
 import { eq } from 'drizzle-orm';
+import { updateStudentSchema } from '~~/server/utils/validation/students';
 
 export default defineEventHandler(async (event) => {
-  try {
-    const id = getRouterParam(event, 'id');
+  const id = getRouterParam(event, 'id');
 
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        message: 'Student ID is required',
-      });
-    }
-
-    const [student] = await db
-      .select()
-      .from(students)
-      .where(eq(students.id, id))
-      .limit(1);
-
-    if (!student) {
-      throw createError({
-        statusCode: 404,
-        message: 'Student not found',
-      });
-    }
-
-    return student;
-  } catch (error) {
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error;
-    }
-
-    console.error('Error fetching student:', error);
+  if (!id) {
     throw createError({
-      statusCode: 500,
-      message: 'Failed to fetch student',
+      statusCode: 400,
+      message: 'Student ID is required',
     });
   }
+
+  const body = await readBody(event);
+  const validatedData = updateStudentSchema.parse(body);
+
+  const [updatedStudent] = await db
+    .update(students)
+    .set({
+      ...validatedData,
+      updatedAt: new Date(),
+    })
+    .where(eq(students.id, id))
+    .returning();
+
+  if (!updatedStudent) {
+    throw createError({
+      statusCode: 404,
+      message: 'Student not found',
+    });
+  }
+
+  return updatedStudent;
 });

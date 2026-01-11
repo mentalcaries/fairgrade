@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Student } from '~/types';
+import type { StudentWithUnit } from '~/types';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 
 interface Props {
   open: boolean;
-  editingStudent: Student | null;
+  editingStudent: StudentWithUnit | null;
 }
 
 interface Emits {
@@ -24,7 +24,6 @@ interface Emits {
     form: {
       firstName: string;
       lastName: string;
-      email: string;
       studentId: string;
     }
   ): void;
@@ -36,7 +35,6 @@ const emit = defineEmits<Emits>();
 const studentForm = ref({
   firstName: '',
   lastName: '',
-  email: '',
   studentId: '',
 });
 
@@ -48,14 +46,12 @@ watch(
       studentForm.value = {
         firstName: student.firstName,
         lastName: student.lastName,
-        email: student.email,
         studentId: student.studentId,
       };
     } else {
       studentForm.value = {
         firstName: '',
         lastName: '',
-        email: '',
         studentId: '',
       };
     }
@@ -108,16 +104,6 @@ const handleSubmit = () => {
             id="studentId"
             v-model="studentForm.studentId"
             placeholder="STU001"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            v-model="studentForm.email"
-            type="email"
-            placeholder="john@university.edu"
           />
         </div>
       </div>

@@ -22,17 +22,14 @@ export interface Student {
 export interface Unit {
   id: string;
   name: string;
+  hospital: Hospital;
+  consultantId: string | null;
   rotationGroupId: string;
   classId: string;
-  hospital: Hospital;
-  instructorId?: string;
-  studentIds: string[];
 }
 
-export interface StudentGroup {
-  id: string;
-  name: string;
-  studentIds: string[];
+export interface StudentWithUnit extends Student {
+  unit: Unit | null;
 }
 
 export interface Consultant {
@@ -47,11 +44,11 @@ export interface Consultant {
 export interface Assessment {
   id: string;
   studentId: string;
-  criterion1: number;
-  criterion2: number;
-  criterion3: number;
-  criterion4: number;
-  criterion5: number;
+  attendance: number;
+  factualKnowledge: number;
+  clinicalApproach: number;
+  reliabilityDeportment: number;
+  initiative: number;
   submittedBy: string;
   submittedAt: string;
 }

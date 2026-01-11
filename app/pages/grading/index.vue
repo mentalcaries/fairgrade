@@ -17,13 +17,17 @@ import {
 } from '@/components/ui/select';
 import Slider from '~/components/ui/slider/Slider.vue';
 
-import {
-  initialStudents as students,
-  initialAssessments as assessments,
-} from '#imports';
 import { signOut } from '~/lib/auth-client';
+import type { Assessment } from '~/types';
 
 const { data: consultant } = await useFetch('/api/consultants/me');
+
+const { data: students } = await useFetch('/api/students', {
+  query: { consultantId: consultant.value?.id },
+  default: () => [],
+});
+
+const assessments = ref<Assessment[]>([]);
 
 const scores = ref<Record<ScoreKey, number>>({
   criterion1: 50,
@@ -127,8 +131,10 @@ const getScoreColor = (score: number) => {
 };
 
 // Filter out students who already have assessments
-const availableStudents = students.filter(
-  (s) => !assessments.some((a) => a.studentId === s.id)
+const availableStudents = computed(() =>
+  students.value.filter(
+    (s) => !assessments.value.some((a) => a.studentId === s.id)
+  )
 );
 </script>
 
@@ -208,7 +214,9 @@ const availableStudents = students.filter(
                   :key="student.id"
                   :value="student.id"
                 >
-                  {{ student.name }} ({{ student.studentId }})
+                  {{ student.firstName }} {{ student.lastName }} ({{
+                    student.studentId
+                  }})
                 </SelectItem>
                 <SelectItem
                   v-if="availableStudents.length === 0"

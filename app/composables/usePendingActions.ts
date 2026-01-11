@@ -1,39 +1,34 @@
 import type {
-  Student,
-  Instructor,
+  StudentWithUnit,
+  Consultant,
   Unit,
   Assessment,
-  AcademicYear,
+  Class,
   PendingAction,
+  RotationGroup,
 } from '~/types';
 
 export function usePendingActions(
-  students: Student[],
-  instructors: Instructor[],
-  units: Unit[],
-  assessments: Assessment[],
-  activeYear: AcademicYear | undefined
+  students: Ref<StudentWithUnit[]>,
+  consultants: Ref<Consultant[]>,
+  units: Ref<Unit[]>,
+  assessments: Ref<Assessment[]>,
+  activeYear: Ref<Class | undefined>
 ) {
+  const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+
   const pendingActions = computed<PendingAction[]>(() => {
     const actions: PendingAction[] = [];
 
-    // Units without instructors
-    const unitsWithoutInstructors = units.filter((c) => !c.instructorId);
-    if (unitsWithoutInstructors.length > 0) {
-      actions.push({
-        id: 'no-instructor',
-        message: `${unitsWithoutInstructors.length} unit${
-          unitsWithoutInstructors.length > 1 ? 's' : ''
-        } without assigned instructors`,
-        href: '/dashboard/class',
-        count: unitsWithoutInstructors.length,
-      });
-    }
+    if (activeYear.value) {
+      const activeYearId = activeYear.value.id;
+      const activeGroups =
+        rotationGroups.value?.filter(
+          (g) => g.classId === activeYear.value?.id
+        ) || [];
 
-    // Unassigned students per group
-    if (activeYear) {
-      activeYear.rotationGroups.forEach((group) => {
-        const unassignedInGroup = students.filter(
+      activeGroups.forEach((group) => {
+        const unassignedInGroup = students.value.filter(
           (s) => s.rotationGroupId === group.id && !s.unitId
         );
         if (unassignedInGroup.length > 0) {
@@ -42,44 +37,46 @@ export function usePendingActions(
             message: `${unassignedInGroup.length} unassigned student${
               unassignedInGroup.length > 1 ? 's' : ''
             } in Group ${group.name}`,
-            href: `/dashboard/class/${activeYear.id}/groups/${group.id}`,
+            href: `/dashboard/class/${activeYearId}/groups/${group.id}`,
             count: unassignedInGroup.length,
           });
         }
       });
     }
 
-    // Instructors who haven't submitted grades
-    const activeInstructorsWithUnits = instructors.filter(
-      (i) =>
-        i.status === 'active' && units.some((c) => c.instructorId === i.id)
+    // Consultants who haven't submitted grades
+    const activeConsultantsWithUnits = consultants.value.filter(
+      (c) => c.isActive && units.value.some((u) => u.consultantId === c.id)
     );
 
-    const instructorsWithoutGrades = activeInstructorsWithUnits.filter(
-      (instructor) => {
-        const instructorUnits = units.filter(
-          (c) => c.instructorId === instructor.id
+    const consultantsWithoutGrades = activeConsultantsWithUnits.filter(
+      (consultant) => {
+        const consultantUnits = units.value.filter(
+          (u) => u.consultantId === consultant.id
         );
-        const hasSubmittedGrades = instructorUnits.some((unit) =>
-          unit.studentIds.some((studentId) =>
-            assessments.some(
-              (a) =>
-                a.studentId === studentId && a.submittedBy === instructor.id
-            )
-          )
+
+        // Get all students in consultant's units
+        const studentsInUnits = students.value.filter((s) =>
+          consultantUnits.some((u) => u.id === s.unitId)
         );
+
+        // Check if any assessments exist for these students
+        const hasSubmittedGrades = studentsInUnits.some((student) =>
+          assessments.value.some((a) => a.studentId === student.id)
+        );
+
         return !hasSubmittedGrades;
       }
     );
 
-    if (instructorsWithoutGrades.length > 0) {
+    if (consultantsWithoutGrades.length > 0) {
       actions.push({
         id: 'no-grades',
-        message: `${instructorsWithoutGrades.length} instructor${
-          instructorsWithoutGrades.length > 1 ? 's' : ''
+        message: `${consultantsWithoutGrades.length} consultant${
+          consultantsWithoutGrades.length > 1 ? 's' : ''
         } haven't submitted grades`,
         href: '/dashboard/consultants',
-        count: instructorsWithoutGrades.length,
+        count: consultantsWithoutGrades.length,
       });
     }
 

@@ -3,6 +3,7 @@ import type { RotationGroup } from '~/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Calendar, PencilIcon } from 'lucide-vue-next';
+import { formatDate } from '~/lib/format-date';
 
 interface Props {
   group: RotationGroup;
@@ -21,14 +22,6 @@ const emit = defineEmits<Emits>();
 //     ? (props.group.gradedCount / props.group.studentCount) * 100
 //     : 0;
 // });
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
 
 const isCurrent = computed(() => {
   if (!props.group.startDate || !props.group.endDate) return false;

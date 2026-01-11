@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const createUnitSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   hospital: z.string().min(1, 'Hospital is required'),
-  consultantId: z.string().uuid('Invalid consultant ID').optional().nullable(),
+  consultantId: z.string().uuid('Invalid consultant ID'),
   rotationGroupId: z.string().uuid('Invalid rotation group ID'),
   classId: z.string().uuid('Invalid class ID'),
 });

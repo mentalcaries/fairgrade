@@ -1,6 +1,6 @@
-import type { Student } from '~/types';
+import type { StudentWithUnit } from '~/types';
 
-export function useStudentFilters(students: Ref<Student[]>) {
+export function useStudentFilters(students: Ref<StudentWithUnit[]>) {
   const searchTerm = ref('');
   const groupFilter = ref('all');
   const unitFilter = ref('all');
@@ -13,13 +13,7 @@ export function useStudentFilters(students: Ref<Student[]>) {
         s.studentId.toLowerCase().includes(searchTerm.value.toLowerCase());
 
       const matchesGroup =
-        groupFilter.value === 'all' ||
-        (groupFilter.value === 'A' && s.rotationGroupId === 'rg1') ||
-        (groupFilter.value === 'B' && s.rotationGroupId === 'rg2') ||
-        (groupFilter.value === 'C' && s.rotationGroupId === 'rg3') ||
-        (groupFilter.value === 'D' && s.rotationGroupId === 'rg4') ||
-        (groupFilter.value === 'E' && s.rotationGroupId === 'rg5') ||
-        (groupFilter.value === 'F' && s.rotationGroupId === 'rg6');
+        groupFilter.value === 'all' || s.rotationGroupId === groupFilter.value;
 
       const matchesUnit =
         unitFilter.value === 'all' ||

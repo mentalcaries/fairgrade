@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Hospital, Student, Instructor } from '~/types'
-import { HOSPITALS } from '~/types'
+import type { Hospital, Student, Consultant } from '~/types';
+import { HOSPITALS } from '~/types';
 import {
   Dialog,
   DialogContent,
@@ -8,90 +8,107 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { AlertTriangle } from 'lucide-vue-next'
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertTriangle } from 'lucide-vue-next';
 
 interface Props {
-  open: boolean
-  groupName: string
-  nextUnitName: string
-  preselectedHospital?: Hospital
-  unassignedStudents: Student[]
-  instructors: Instructor[]
+  open: boolean;
+  groupName: string;
+  nextUnitName: string;
+  preselectedHospital?: Hospital;
+  unassignedStudents: Student[];
+  consultants: Consultant[];
 }
 
 interface Emits {
-  (e: 'update:open', value: boolean): void
-  (e: 'submit', form: {
-    hospital: Hospital
-    instructorId: string
-    studentIds: string[]
-  }): void
+  (e: 'update:open', value: boolean): void;
+  (
+    e: 'submit',
+    form: {
+      hospital: Hospital;
+      consultantId: string;
+      studentIds: string[];
+    }
+  ): void;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
 const form = ref<{
-  hospital: Hospital | ''
-  instructorId: string
-  studentIds: string[]
+  hospital: Hospital | '';
+  consultantId: string;
+  studentIds: string[];
 }>({
   hospital: '',
-  instructorId: '',
+  consultantId: '',
   studentIds: [],
-})
+});
 
-// Set preselected hospital when dialog opens
-watch(() => props.preselectedHospital, (hospital) => {
-  if (hospital) {
-    form.value.hospital = hospital
-  }
-}, { immediate: true })
+watch(
+  () => props.preselectedHospital,
+  (hospital) => {
+    if (hospital) {
+      form.value.hospital = hospital;
+    }
+  },
+  { immediate: true }
+);
 
 const isSubmitDisabled = computed(() => {
-  return !form.value.hospital
-})
+  return !form.value.hospital || !form.value.consultantId;
+});
 
 const toggleStudent = (studentId: string) => {
   if (form.value.studentIds.includes(studentId)) {
-    form.value.studentIds = form.value.studentIds.filter((id) => id !== studentId)
+    form.value.studentIds = form.value.studentIds.filter(
+      (id) => id !== studentId
+    );
   } else {
-    form.value.studentIds = [...form.value.studentIds, studentId]
+    form.value.studentIds = [...form.value.studentIds, studentId];
   }
-}
+};
 
 const handleSubmit = () => {
-  if (form.value.hospital) {
+  if (form.value.hospital && form.value.consultantId) {
     emit('submit', {
       hospital: form.value.hospital,
-      instructorId: form.value.instructorId,
+      consultantId: form.value.consultantId,
       studentIds: form.value.studentIds,
-    })
-    
+    });
+
     // Reset form
     form.value = {
       hospital: '',
-      instructorId: '',
+      consultantId: '',
       studentIds: [],
-    }
+    };
   }
-}
+};
 
 // Reset form when dialog closes
-watch(() => props.open, (isOpen) => {
-  if (!isOpen) {
-    form.value = {
-      hospital: '',
-      instructorId: '',
-      studentIds: [],
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) {
+      form.value = {
+        hospital: '',
+        consultantId: '',
+        studentIds: [],
+      };
     }
   }
-})
+);
 </script>
 
 <template>
@@ -122,18 +139,18 @@ watch(() => props.open, (isOpen) => {
         </div>
 
         <div class="space-y-2">
-          <Label for="consultant">Consultant (optional)</Label>
-          <Select v-model="form.instructorId">
+          <Label for="consultant">Consultant *</Label>
+          <Select v-model="form.consultantId">
             <SelectTrigger>
               <SelectValue placeholder="Select consultant..." />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
-                v-for="instructor in instructors"
-                :key="instructor.id"
-                :value="instructor.id"
+                v-for="consultant in consultants"
+                :key="consultant.id"
+                :value="consultant.id"
               >
-                {{ instructor.name }}
+                {{ consultant.name }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -141,32 +158,40 @@ watch(() => props.open, (isOpen) => {
 
         <div class="space-y-2">
           <Label>Students ({{ form.studentIds.length }} selected)</Label>
-          <div class="max-h-48 overflow-y-auto border border-border rounded-lg p-3 space-y-2">
-            <div
-              v-if="unassignedStudents.length > 0"
-              v-for="student in unassignedStudents"
-              :key="student.id"
-              class="flex items-center space-x-3"
-            >
-              <Checkbox
-                :id="`student-${student.id}`"
-                :checked="form.studentIds.includes(student.id)"
-                @update:checked="toggleStudent(student.id)"
-              />
-              <label
-                :for="`student-${student.id}`"
-                class="text-sm cursor-pointer"
+          <div
+            class="max-h-48 overflow-y-auto border border-border rounded-lg p-3 space-y-2"
+          >
+            <template v-if="unassignedStudents.length > 0">
+              <div
+                v-for="student in unassignedStudents"
+                :key="student.id"
+                class="flex items-center space-x-3 cursor-pointer"
+                @click="toggleStudent(student.id)"
               >
-                {{ student.name }} ({{ student.studentId }})
-              </label>
-            </div>
-            
+                <Checkbox
+                  :id="`student-${student.id}`"
+                  :checked="form.studentIds.includes(student.id)"
+                />
+                <label
+                  :for="`student-${student.id}`"
+                  class="text-sm"
+                >
+                  {{ student.firstName }} {{ student.lastName }} ({{
+                    student.studentId
+                  }})
+                </label>
+              </div>
+            </template>
+
             <p v-else class="text-sm text-muted-foreground text-center py-2">
               No unassigned students in this group
             </p>
           </div>
-          
-          <p v-if="form.studentIds.length > 6" class="text-xs text-amber-600 flex items-center gap-1">
+
+          <p
+            v-if="form.studentIds.length > 6"
+            class="text-xs text-amber-600 flex items-center gap-1"
+          >
             <AlertTriangle class="h-3 w-3" />
             Warning: Recommended max is 5-6 students per unit
           </p>

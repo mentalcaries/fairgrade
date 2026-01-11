@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { Class, RotationGroup } from '~/types';
+import type {
+  Assessment,
+  Class,
+  RotationGroup,
+  StudentWithUnit,
+  Unit,
+} from '~/types';
 
 const { data: classes, refresh: refreshClasses } = await useFetch<Class[]>(
   '/api/classes',
@@ -16,11 +22,34 @@ const { data: rotationGroups, refresh: refreshRotationGroups } = await useFetch<
   query: computed(() => ({ classId: activeClass.value?.id || '' })),
   watch: [activeClass],
 });
+const { data: consultants } = await useFetch('/api/consultants', {
+  default: () => [],
+});
+
+const { data: students } = await useFetch<StudentWithUnit[]>('/api/students', {
+  default: () => [],
+});
+
+const { data: units } = await useFetch<Unit[]>('/api/units', {
+  default: () => [],
+});
+
+const { data: assessments } = await useFetch<Assessment[]>('/api/assessments', {
+  query: computed(() => ({ classId: activeClass.value?.id || '' })),
+  watch: [activeClass],
+  default: () => [],
+});
 
 provide('classes', classes);
 provide('rotationGroups', rotationGroups);
 provide('refreshClasses', refreshClasses);
 provide('refreshRotationGroups', refreshRotationGroups);
+provide('consultants', consultants);
+provide('students', students);
+provide('units', units);
+provide('assessments', assessments);
+
+const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();
 </script>
 
 <template>
@@ -31,5 +60,11 @@ provide('refreshRotationGroups', refreshRotationGroups);
         <slot />
       </div>
     </main>
+    <ClassEditRotationGroupDatesDialog
+      v-if="selectedGroup"
+      v-model:open="setDatesOpen"
+      :group="selectedGroup"
+      @submit="handleSetDates"
+    />
   </div>
 </template>

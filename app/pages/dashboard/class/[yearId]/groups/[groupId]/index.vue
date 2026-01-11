@@ -1,10 +1,24 @@
 <script setup lang="ts">
-import type { Hospital, Unit } from '~/types';
+import type {
+  Consultant,
+  Hospital,
+  RotationGroup,
+  Student,
+  Unit,
+} from '~/types';
 import { HOSPITALS } from '~/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Upload, Users, Building2 } from 'lucide-vue-next';
+import {
+  ArrowLeft,
+  Plus,
+  Upload,
+  Users,
+  Building2,
+  Calendar,
+} from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import { formatDate } from '~/lib/format-date';
 
 definePageMeta({
   layout: 'dashboard',
@@ -12,10 +26,13 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const yearId = route.params.yearId as string;
+const classId = route.params.yearId as string;
 const groupId = route.params.groupId as string;
 
 const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+const consultants = inject<Ref<Consultant[]>>('consultants')!;
+
+const { openSetDates } = useRotationGroupDates();
 
 const rotationGroup = computed(() =>
   rotationGroups.value?.find((g) => g.id === groupId)
@@ -25,25 +42,37 @@ if (!rotationGroup.value) {
   throw createError({ statusCode: 404, message: 'Rotation group not found' });
 }
 
-// Filter data for this group
-const groupUnits = computed(() =>
-  units.filter((c) => c.rotationGroupId === groupId && c.classId === yearId)
+const { data: units, refresh: refreshUnits } = await useFetch<Unit[]>(
+  `/api/units`,
+  {
+    query: { rotationGroupId: groupId },
+    default: () => [],
+  }
 );
 
-const groupStudents = computed(() =>
-  students.filter((s) => s.rotationGroupId === groupId && s.classId === yearId)
+const { data: students, refresh: refreshStudents } = await useFetch<Student[]>(
+  `/api/students`,
+  {
+    query: { rotationGroupId: groupId },
+    default: () => [],
+  }
 );
+
+const hasDates = computed(
+  () => rotationGroup.value?.startDate && rotationGroup.value?.endDate
+);
+
+const groupUnits = computed(() => units.value || []);
+
+const groupStudents = computed(() => students.value || []);
 
 const unassignedStudents = computed(() =>
-  groupStudents.value.filter((s) => !s.unitId)
+  groupStudents.value.filter((s: Student) => !s.unitId)
 );
 
-// Stats
 const totalStudents = computed(() => groupStudents.value.length);
 const totalUnits = computed(() => groupUnits.value.length);
-const gradedCount = computed(() => rotationGroup.value?.gradedCount || 0);
 
-// Group units by hospital
 const unitsByHospital = computed(() => {
   const grouped: Record<Hospital, Unit[]> = {
     'San Fernando General Hospital': [],
@@ -73,6 +102,8 @@ const nextUnitName = computed(() => {
 const bulkImportOpen = ref(false);
 const addStudentOpen = ref(false);
 const addUnitOpen = ref(false);
+const editUnitOpen = ref(false);
+const editUnitData = ref<Unit | null>(null);
 const deleteUnitDialogOpen = ref(false);
 const deleteUnitOpen = ref<Unit | null>(null);
 const preselectedHospital = ref<Hospital | undefined>(undefined);
@@ -89,14 +120,73 @@ const handleAddStudent = (form: {
   addStudentOpen.value = false;
 };
 
-const handleAddUnit = (form: {
+const handleAddUnit = async (form: {
   hospital: Hospital;
-  instructorId: string;
+  consultantId: string;
   studentIds: string[];
 }) => {
-  // addUnit({...})
-  console.log('Add unit:', form);
-  addUnitOpen.value = false;
+  try {
+    // Create the unit
+    const newUnit = await $fetch<Unit>('/api/units', {
+      method: 'POST',
+      body: {
+        name: nextUnitName.value,
+        hospital: form.hospital,
+        consultantId: form.consultantId || null,
+        rotationGroupId: groupId,
+        classId,
+      },
+    });
+
+    if (newUnit && form.studentIds.length > 0) {
+      await Promise.all(
+        form.studentIds.map((studentId) =>
+          $fetch(`/api/students/${studentId}`, {
+            method: 'PATCH',
+            body: {
+              unitId: newUnit.id,
+            },
+          })
+        )
+      );
+    }
+
+    toast.success(`Unit ${nextUnitName.value} created successfully`);
+    addUnitOpen.value = false;
+
+    // Refresh the units list and students
+    await refreshUnits();
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to create unit');
+  }
+};
+
+const handleEditUnit = async (form: {
+  hospital: Hospital;
+  consultantId: string;
+}) => {
+  if (!editUnitData.value) return;
+
+  try {
+    await $fetch(`/api/units/${editUnitData.value.id}`, {
+      method: 'PATCH',
+      body: {
+        hospital: form.hospital,
+        consultantId: form.consultantId || null,
+      },
+    });
+
+    toast.success(`Unit ${editUnitData.value.name} updated successfully`);
+    editUnitOpen.value = false;
+    editUnitData.value = null;
+
+    await refreshUnits();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to update unit');
+  }
 };
 
 const handleBulkImport = (
@@ -107,33 +197,36 @@ const handleBulkImport = (
   bulkImportOpen.value = false;
 };
 
-const handleDeleteUnit = () => {
+const handleDeleteUnit = async () => {
   if (!deleteUnitOpen.value) return;
 
   const unitName = deleteUnitOpen.value.name;
-  // deleteUnit(deleteUnitOpen.value.id)
-  console.log('Delete unit:', deleteUnitOpen.value.id);
+  const unitId = deleteUnitOpen.value.id;
 
-  toast.success(`Unit ${unitName} deleted successfully`);
-  deleteUnitDialogOpen.value = false;
-  deleteUnitOpen.value = null;
+  try {
+    await $fetch(`/api/units/${unitId}`, {
+      method: 'DELETE',
+    });
+
+    toast.success(`Unit ${unitName} deleted successfully`);
+    deleteUnitDialogOpen.value = false;
+    deleteUnitOpen.value = null;
+
+    await refreshUnits();
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to delete unit');
+  }
 };
 
 const handleViewUnit = (unitId: string) => {
-  navigateTo(`/dashboard/class/${yearId}/groups/${groupId}/units/${unitId}`);
+  navigateTo(`/dashboard/class/${classId}/groups/${groupId}/units/${unitId}`);
 };
 
 const openAddUnitDialog = (hospital?: Hospital) => {
   preselectedHospital.value = hospital;
   addUnitOpen.value = true;
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
 };
 </script>
 
@@ -157,13 +250,27 @@ const formatDate = (dateString: string) => {
           <h1 class="text-3xl font-bold text-foreground">
             Group {{ rotationGroup?.name }}
           </h1>
-          <p class="text-muted-foreground mt-1">
-            {{ formatDate(rotationGroup!.startDate) }} -
-            {{ formatDate(rotationGroup!.endDate) }}
-          </p>
+
+          <!-- Show dates if set, otherwise show button -->
+          <div v-if="hasDates" class="text-muted-foreground mt-1">
+            <p>
+              {{ formatDate(rotationGroup!.startDate) }} -
+              {{ formatDate(rotationGroup!.endDate) }}
+            </p>
+          </div>
+          <div v-else class="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              @click="openSetDates(rotationGroup!)"
+            >
+              <Calendar class="h-4 w-4 mr-2" />
+              Set Rotation Dates
+            </Button>
+          </div>
+
           <p class="text-sm text-muted-foreground mt-1">
             {{ totalStudents }} students • {{ totalUnits }} units •
-            {{ gradedCount }}/{{ totalStudents }} graded
           </p>
         </div>
 
@@ -216,10 +323,14 @@ const formatDate = (dateString: string) => {
             :key="unit.id"
             :unit="unit"
             :students="students"
-            :instructor="instructors.find((i) => i.id === unit.instructorId)"
-            :year-id="yearId"
+            :consultant="consultants.find((c) => c.id === unit.consultantId)"
+            :year-id="classId"
             :group-id="groupId"
             @view="handleViewUnit(unit.id)"
+            @edit="
+              editUnitData = unit;
+              editUnitOpen = true;
+            "
             @delete="
               deleteUnitOpen = unit;
               deleteUnitDialogOpen = true;
@@ -269,7 +380,7 @@ const formatDate = (dateString: string) => {
       :next-unit-name="nextUnitName"
       :preselected-hospital="preselectedHospital"
       :unassigned-students="unassignedStudents"
-      :instructors="instructors"
+      :consultants="consultants"
       @submit="handleAddUnit"
     />
 
@@ -279,6 +390,13 @@ const formatDate = (dateString: string) => {
       :students="students"
       :group-name="rotationGroup?.name || ''"
       @confirm="handleDeleteUnit"
+    />
+    <ClassEditUnitDialog
+      v-if="editUnitData"
+      v-model:open="editUnitOpen"
+      :unit="editUnitData"
+      :consultants="consultants"
+      @submit="handleEditUnit"
     />
   </div>
 </template>
