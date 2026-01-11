@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RotationGroup, StudentWithUnit } from '~/types';
+import type { Assessment, RotationGroup, StudentWithUnit } from '~/types';
 import {
   Card,
   CardContent,
@@ -17,15 +17,17 @@ definePageMeta({
 const students = inject<Ref<StudentWithUnit[]>>('students')!;
 const refreshStudents = inject<() => Promise<void>>('refreshStudents')!;
 const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+const assessments = inject<Ref<Assessment[]>>('assessments')!;
 
 const { searchTerm, groupFilter, unitFilter, filteredStudents } =
   useStudentFilters(students);
 
+const isLoading = ref(false);
 const studentDialogOpen = ref(false);
 const editingStudent = ref<StudentWithUnit | null>(null);
-
 const deleteStudentId = ref<string | null>(null);
 const deleteDialogOpen = ref(false);
+
 const studentToDelete = computed(() =>
   students.value?.find((s) => s.id === deleteStudentId.value)
 );
@@ -71,6 +73,8 @@ const handleStudentSubmit = async (form: {
 const handleDeleteStudent = async () => {
   if (!deleteStudentId.value) return;
 
+  isLoading.value = true;
+
   try {
     await $fetch(`/api/students/${deleteStudentId.value}`, {
       method: 'DELETE',
@@ -83,6 +87,8 @@ const handleDeleteStudent = async () => {
   } catch (error) {
     const err = error as { data?: { message?: string } };
     toast.error(err.data?.message || 'Failed to delete student');
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -131,7 +137,6 @@ const handleDeleteStudent = async () => {
       </CardContent>
     </Card>
 
-    <!-- Dialogs -->
     <StudentsDialog
       v-model:open="studentDialogOpen"
       :editing-student="editingStudent"
@@ -141,6 +146,8 @@ const handleDeleteStudent = async () => {
     <StudentsDeleteDialog
       v-model:open="deleteDialogOpen"
       :student="studentToDelete"
+      :loading="isLoading"
+      :assessments="assessments"
       @confirm="handleDeleteStudent"
       @update:open="if (!$event) deleteStudentId = null;"
     />
