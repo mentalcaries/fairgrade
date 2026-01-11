@@ -81,7 +81,6 @@ const unitsByHospital = computed(() => {
   return grouped;
 });
 
-// Calculate next unit name
 const nextUnitName = computed(() => {
   const existingNumbers = groupUnits.value
     .map((c) => Number.parseInt(c.name.slice(1)))
@@ -91,7 +90,6 @@ const nextUnitName = computed(() => {
   return `${rotationGroup.value?.name}${maxNumber + 1}`;
 });
 
-// Dialog states
 const bulkImportOpen = ref(false);
 const addStudentOpen = ref(false);
 const addUnitOpen = ref(false);
@@ -102,15 +100,38 @@ const deleteUnitOpen = ref<Unit | null>(null);
 const preselectedHospital = ref<Hospital | undefined>(undefined);
 
 // Handlers
-const handleAddStudent = (form: {
+const handleAddStudent = async (form: {
   studentId: string;
   firstName: string;
   lastName: string;
   unitId: string;
 }) => {
-  // addStudent({...})
-  console.log('Add student:', form);
-  addStudentOpen.value = false;
+  try {
+    await $fetch('/api/students', {
+      method: 'POST',
+      body: {
+        studentId: form.studentId,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        classId,
+        rotationGroupId: groupId,
+        unitId: form.unitId || null,
+      },
+    });
+
+    toast.success('Student added successfully');
+    addStudentOpen.value = false;
+
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { statusCode?: number; data?: { message?: string } };
+
+    if (err.statusCode === 409) {
+      toast.error('A student with this ID already exists');
+    } else {
+      toast.error(err.data?.message || 'Failed to add student');
+    }
+  }
 };
 
 const handleAddUnit = async (form: {
@@ -182,12 +203,9 @@ const handleEditUnit = async (form: {
   }
 };
 
-const handleBulkImport = (
-  data: Array<{ studentId: string; firstName: string; lastName: string }>
-) => {
-  // Bulk import students
-  console.log('Bulk import:', data);
+const handleBulkImport = async () => {
   bulkImportOpen.value = false;
+  await refreshStudents();
 };
 
 const handleDeleteUnit = async () => {
@@ -357,7 +375,9 @@ const openAddUnitDialog = (hospital?: Hospital) => {
     <ClassBulkImportDialog
       v-model:open="bulkImportOpen"
       :group-name="rotationGroup?.name || ''"
-      @import="handleBulkImport"
+      :class-id="classId"
+      :rotation-group-id="groupId"
+      @success="handleBulkImport"
     />
 
     <ClassAddStudentDialog
