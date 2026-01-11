@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StudentWithUnit } from '~/types';
+import type { RotationGroup, StudentWithUnit } from '~/types';
 import {
   Card,
   CardContent,
@@ -16,6 +16,7 @@ definePageMeta({
 
 const students = inject<Ref<StudentWithUnit[]>>('students')!;
 const refreshStudents = inject<() => Promise<void>>('refreshStudents')!;
+const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
 
 const { searchTerm, groupFilter, unitFilter, filteredStudents } =
   useStudentFilters(students);
@@ -107,10 +108,11 @@ const handleDeleteStudent = async () => {
             >
           </div>
 
-          <StudentsStudentFilters
+          <StudentsFilters
             v-model:search-term="searchTerm"
             v-model:group-filter="groupFilter"
             v-model:unit-filter="unitFilter"
+            :rotation-groups="rotationGroups"
           />
         </div>
       </CardHeader>

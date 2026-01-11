@@ -8,11 +8,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search } from 'lucide-vue-next';
+import type { RotationGroup } from '~/types';
 
 interface Props {
   searchTerm: string;
   groupFilter: string;
   unitFilter: string;
+  rotationGroups: RotationGroup[];
 }
 
 interface Emits {
@@ -45,17 +47,18 @@ const emit = defineEmits<Emits>();
       :model-value="groupFilter"
       @update:model-value="emit('update:groupFilter', String($event))"
     >
-      <SelectTrigger class="w-[130px]">
+      <SelectTrigger class="w-40">
         <SelectValue placeholder="All Groups" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Groups</SelectItem>
-        <SelectItem value="A">Group A</SelectItem>
-        <SelectItem value="B">Group B</SelectItem>
-        <SelectItem value="C">Group C</SelectItem>
-        <SelectItem value="D">Group D</SelectItem>
-        <SelectItem value="E">Group E</SelectItem>
-        <SelectItem value="F">Group F</SelectItem>
+        <SelectItem
+          v-for="group in rotationGroups"
+          :key="group.id"
+          :value="group.id"
+        >
+          Group {{ group.name }}
+        </SelectItem>
       </SelectContent>
     </Select>
 
@@ -63,7 +66,7 @@ const emit = defineEmits<Emits>();
       :model-value="unitFilter"
       @update:model-value="emit('update:unitFilter', String($event))"
     >
-      <SelectTrigger class="w-[130px]">
+      <SelectTrigger class="w-[150px]">
         <SelectValue placeholder="All Units" />
       </SelectTrigger>
       <SelectContent>
