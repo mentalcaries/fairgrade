@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
-import type { Label } from '~/components/ui/label';
+import { Label } from '~/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -16,98 +16,134 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Slider from '~/components/ui/slider/Slider.vue';
-
 import { signOut } from '~/lib/auth-client';
-import type { Assessment } from '~/types';
+import { toast } from 'vue-sonner';
 
 const { data: consultant } = await useFetch('/api/consultants/me');
 
+// Fetch students assigned to this consultant
 const { data: students } = await useFetch('/api/students', {
   query: { consultantId: consultant.value?.id },
   default: () => [],
 });
 
-const assessments = ref<Assessment[]>([]);
-
-const scores = ref<Record<ScoreKey, number>>({
-  criterion1: 50,
-  criterion2: 50,
-  criterion3: 50,
-  criterion4: 50,
-  criterion5: 50,
-});
-
-const submitted = ref(false);
-const selectedStudent = ref('');
+// Fetch assessments for this consultant
+const { data: assessments, refresh: refreshAssessments } = await useFetch(
+  '/api/assessments',
+  {
+    query: { consultantId: consultant.value?.id },
+    default: () => [],
+  }
+);
 
 type ScoreKey =
-  | 'criterion1'
-  | 'criterion2'
-  | 'criterion3'
-  | 'criterion4'
-  | 'criterion5';
+  | 'attendance'
+  | 'factualKnowledge'
+  | 'clinicalApproach'
+  | 'reliabilityDeportment'
+  | 'initiative';
 
 interface Criterion {
-  key: ScoreKey; // Instead of just 'string'
+  key: ScoreKey;
   label: string;
   description: string;
 }
 
 const criteria: Criterion[] = [
   {
-    key: 'criterion1',
-    label: 'Technical Skills',
-    description: 'Proficiency in technical concepts and tools',
+    key: 'attendance',
+    label: 'Attendance',
+    description: 'Punctuality and presence in clinical activities',
   },
   {
-    key: 'criterion2',
-    label: 'Communication',
-    description: 'Clarity and effectiveness in communication',
+    key: 'factualKnowledge',
+    label: 'Factual Knowledge',
+    description: 'Understanding of medical facts and concepts',
   },
   {
-    key: 'criterion3',
-    label: 'Teamwork',
-    description: 'Collaboration and contribution to team efforts',
+    key: 'clinicalApproach',
+    label: 'Approach to Clinical Problems',
+    description: 'Problem-solving and clinical reasoning',
   },
   {
-    key: 'criterion4',
-    label: 'Problem Solving',
-    description: 'Ability to analyze and solve complex problems',
+    key: 'reliabilityDeportment',
+    label: 'Reliability and Deportment',
+    description: 'Professional behavior and dependability',
   },
   {
-    key: 'criterion5',
-    label: 'Creativity',
-    description: 'Innovation and creative thinking',
+    key: 'initiative',
+    label: 'Initiative',
+    description: 'Self-motivation and proactive learning',
   },
 ];
 
-const handleScoreChange = (key: string, value: number[]) => {
-  if (value[0]) scores.value[key as keyof typeof scores.value] = value[0];
-  // any additional logic...
+const scores = ref<Record<ScoreKey, number>>({
+  attendance: 50,
+  factualKnowledge: 50,
+  clinicalApproach: 50,
+  reliabilityDeportment: 50,
+  initiative: 50,
+});
+
+const notes = ref('');
+const submitted = ref(false);
+const selectedStudent = ref('');
+const isSubmitting = ref(false);
+const submitConfirmOpen = ref(false);
+const selectedStudentName = computed(() => {
+  const student = students.value.find((s) => s.id === selectedStudent.value);
+  return student ? `${student.firstName} ${student.lastName}` : '';
+});
+
+const openSubmitDialog = () => {
+  if (!selectedStudent.value) return;
+  submitConfirmOpen.value = true;
 };
 
-const handleSubmit = () => {
-  if (!selectedStudent.value) return;
+const handleScoreChange = (key: string, value: number[]) => {
+  if (value[0]) scores.value[key as ScoreKey] = value[0];
+};
 
-  // addAssessment({
-  //   studentId: selectedStudent,
-  //   ...scores,
-  //   submittedBy: user?.id || 'unknown',
-  //   submittedAt: new Date().toISOString().split('T')[0],
-  // });
+const handleSubmit = async () => {
+  if (!selectedStudent.value || !consultant.value) return;
 
-  submitted.value = true;
-  setTimeout(() => {
-    submitted.value = false;
-    selectedStudent.value = '';
-    scores.value = {
-      criterion1: 75,
-      criterion2: 75,
-      criterion3: 75,
-      criterion4: 75,
-      criterion5: 75,
-    };
-  }, 2000);
+  isSubmitting.value = true;
+
+  try {
+    await $fetch('/api/assessments', {
+      method: 'POST',
+      body: {
+        studentId: selectedStudent.value,
+        consultantId: consultant.value.id,
+        ...scores.value,
+        notes: notes.value || null,
+      },
+    });
+
+    toast.success('Assessment submitted successfully');
+    submitted.value = true;
+    submitConfirmOpen.value = false;
+
+    await refreshAssessments();
+
+    setTimeout(() => {
+      submitted.value = false;
+      selectedStudent.value = '';
+      notes.value = '';
+      scores.value = {
+        attendance: 50,
+        factualKnowledge: 50,
+        clinicalApproach: 50,
+        reliabilityDeportment: 50,
+        initiative: 50,
+      };
+    }, 2000);
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to submit assessment');
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const handleLogout = async () => {
@@ -115,22 +151,25 @@ const handleLogout = async () => {
   navigateTo('/login');
 };
 
-const average = (
-  (scores.value.criterion1 +
-    scores.value.criterion2 +
-    scores.value.criterion3 +
-    scores.value.criterion4 +
-    scores.value.criterion5) /
-  5
-).toFixed(1);
+const average = computed(() =>
+  (
+    (scores.value.attendance +
+      scores.value.factualKnowledge +
+      scores.value.clinicalApproach +
+      scores.value.reliabilityDeportment +
+      scores.value.initiative) /
+    5
+  ).toFixed(1)
+);
+
+const finalScore = computed(() => (parseFloat(average.value) * 0.2).toFixed(2));
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return 'text-accent';
-  if (score >= 50) return 'text-chart-3';
-  return 'text-destructive';
+  if (score >= 80) return 'text-emerald-600';
+  if (score >= 50) return 'text-amber-600';
+  return 'text-red-600';
 };
 
-// Filter out students who already have assessments
 const availableStudents = computed(() =>
   students.value.filter(
     (s) => !assessments.value.some((a) => a.studentId === s.id)
@@ -157,7 +196,7 @@ const availableStudents = computed(() =>
           <div class="flex items-center justify-between gap-4 sm:justify-end">
             <span class="text-sm text-muted-foreground truncate">
               Signed in as
-              <span class="text-foreground">{{ consultant.name }}</span>
+              <span class="text-foreground">{{ consultant?.name }}</span>
             </span>
             <Button
               variant="ghost"
@@ -183,12 +222,30 @@ const availableStudents = computed(() =>
         </p>
       </div>
 
+      <!-- Assessment Progress Badge -->
+      <div class="mb-4">
+        <span
+          :class="[
+            'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+            assessments.length === students.length
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-blue-100 text-blue-700',
+          ]"
+        >
+          {{
+            assessments.length === students.length
+              ? 'All assessments completed'
+              : `${assessments.length}/${students.length} assessed`
+          }}
+        </span>
+      </div>
+
       <Card v-if="submitted" class="bg-card border-border">
         <CardContent class="flex flex-col items-center justify-center py-16">
           <div
-            class="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mb-4"
+            class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4"
           >
-            <CheckCircle2 class="h-8 w-8 text-accent" />
+            <CheckCircle2 class="h-8 w-8 text-emerald-600" />
           </div>
           <h3 class="text-xl font-semibold mb-2">Assessment Submitted!</h3>
           <p class="text-muted-foreground">
@@ -196,6 +253,7 @@ const availableStudents = computed(() =>
           </p>
         </CardContent>
       </Card>
+
       <Card v-else class="bg-card border-border">
         <CardHeader>
           <CardTitle>Select Student</CardTitle>
@@ -204,7 +262,10 @@ const availableStudents = computed(() =>
         <CardContent class="space-y-8">
           <div class="space-y-2">
             <Label>Student</Label>
-            <Select v-model="selectedStudent" value="{selectedStudent}">
+            <Select
+              v-model="selectedStudent"
+              :disabled="availableStudents.length === 0"
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a student..." />
               </SelectTrigger>
@@ -218,17 +279,9 @@ const availableStudents = computed(() =>
                     student.studentId
                   }})
                 </SelectItem>
-                <SelectItem
-                  v-if="availableStudents.length === 0"
-                  value="none"
-                  disabled
-                >
-                  All students have been assessed
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
-
           <template v-if="selectedStudent">
             <div class="space-y-6">
               <div
@@ -244,15 +297,17 @@ const availableStudents = computed(() =>
                     </p>
                   </div>
                   <span
-                    :class="`text-2xl font-bold ${getScoreColor(scores[criterion.key as keyof typeof scores])}`"
+                    :class="`text-2xl font-bold ${getScoreColor(
+                      scores[criterion.key]
+                    )}`"
                   >
-                    {{ scores[criterion.key as keyof typeof scores] }}
+                    {{ scores[criterion.key] }}
                   </span>
                 </div>
                 <Slider
-                  :default-value="[scores[criterion.key as keyof typeof scores]]"
-                  :value="[scores[criterion.key as keyof typeof scores]]"
-                  :min="0"
+                  :default-value="[scores[criterion.key]]"
+                  :value="[scores[criterion.key]]"
+                  :min="1"
                   :max="100"
                   :step="1"
                   class="w-full"
@@ -261,31 +316,60 @@ const availableStudents = computed(() =>
                   "
                 />
                 <div class="flex justify-between text-xs text-muted-foreground">
-                  <span>0</span>
+                  <span>1</span>
                   <span>50</span>
                   <span>100</span>
                 </div>
               </div>
             </div>
 
-            <div
-              class="flex items-center justify-between p-4 rounded-lg bg-secondary/50"
-            >
-              <span class="font-medium">Average Score</span>
-              <span
-                :class="`text-3xl font-bold ${getScoreColor(
-                  Number.parseFloat(average)
-                )}`"
-                >{{ average }}</span
-              >
+            <div class="space-y-2">
+              <Label>Notes (Optional)</Label>
+              <textarea
+                v-model="notes"
+                class="w-full min-h-[100px] px-3 py-2 border border-border rounded-md bg-background"
+                placeholder="Add any additional comments..."
+              />
             </div>
 
-            <Button class="w-full" size="lg" @click="handleSubmit">
+            <div class="space-y-3">
+              <div
+                class="flex items-center justify-between p-4 rounded-lg bg-secondary/50"
+              >
+                <span class="font-medium">Average Score</span>
+                <span
+                  :class="`text-3xl font-bold ${getScoreColor(
+                    parseFloat(average)
+                  )}`"
+                >
+                  {{ average }}
+                </span>
+              </div>
+
+              <div
+                class="flex items-center justify-between p-4 rounded-lg bg-primary/10"
+              >
+                <span class="font-medium">Final Score (out of 20)</span>
+                <span class="text-3xl font-bold text-primary">
+                  {{ finalScore }}
+                </span>
+              </div>
+            </div>
+
+            <Button class="w-full" size="lg" @click="openSubmitDialog">
               Submit Assessment
             </Button>
           </template>
         </CardContent>
       </Card>
     </main>
+    <GradingSubmitConfirmDialog
+      v-model:open="submitConfirmOpen"
+      :student-name="selectedStudentName"
+      :average-score="average"
+      :final-score="finalScore"
+      :loading="isSubmitting"
+      @confirm="handleSubmit"
+    />
   </div>
 </template>
