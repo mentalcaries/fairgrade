@@ -4,6 +4,7 @@ import type {
   Hospital,
   RotationGroup,
   Student,
+  StudentWithUnit,
   Unit,
 } from '~/types';
 import { HOSPITALS } from '~/types';
@@ -41,30 +42,22 @@ const rotationGroup = computed(() =>
 if (!rotationGroup.value) {
   throw createError({ statusCode: 404, message: 'Rotation group not found' });
 }
-
-const { data: units, refresh: refreshUnits } = await useFetch<Unit[]>(
-  `/api/units`,
-  {
-    query: { rotationGroupId: groupId },
-    default: () => [],
-  }
-);
-
-const { data: students, refresh: refreshStudents } = await useFetch<Student[]>(
-  `/api/students`,
-  {
-    query: { rotationGroupId: groupId },
-    default: () => [],
-  }
-);
+const units = inject<Ref<Unit[]>>('units')!;
+const students = inject<Ref<StudentWithUnit[]>>('students')!;
+const refreshUnits = inject<() => Promise<void>>('refreshUnits')!;
+const refreshStudents = inject<() => Promise<void>>('refreshStudents')!;
 
 const hasDates = computed(
   () => rotationGroup.value?.startDate && rotationGroup.value?.endDate
 );
 
-const groupUnits = computed(() => units.value || []);
+const groupUnits = computed(() =>
+  units.value.filter((u) => u.rotationGroupId === groupId)
+);
 
-const groupStudents = computed(() => students.value || []);
+const groupStudents = computed(() =>
+  students.value.filter((s) => s.rotationGroupId === groupId)
+);
 
 const unassignedStudents = computed(() =>
   groupStudents.value.filter((s: Student) => !s.unitId)

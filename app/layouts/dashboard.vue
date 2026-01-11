@@ -26,13 +26,18 @@ const { data: consultants } = await useFetch('/api/consultants', {
   default: () => [],
 });
 
-const { data: students } = await useFetch<StudentWithUnit[]>('/api/students', {
+const { data: students, refresh: refreshStudents } = await useFetch<
+  StudentWithUnit[]
+>('/api/students', {
   default: () => [],
 });
 
-const { data: units } = await useFetch<Unit[]>('/api/units', {
-  default: () => [],
-});
+const { data: units, refresh: refreshUnits } = await useFetch<Unit[]>(
+  '/api/units',
+  {
+    default: () => [],
+  }
+);
 
 const { data: assessments } = await useFetch<Assessment[]>('/api/assessments', {
   query: computed(() => ({ classId: activeClass.value?.id || '' })),
@@ -47,6 +52,8 @@ provide('refreshRotationGroups', refreshRotationGroups);
 provide('consultants', consultants);
 provide('students', students);
 provide('units', units);
+provide('refreshStudents', refreshStudents);
+provide('refreshUnits', refreshUnits);
 provide('assessments', assessments);
 
 const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();

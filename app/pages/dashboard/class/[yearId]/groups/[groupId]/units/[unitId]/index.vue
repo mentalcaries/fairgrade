@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import type { Hospital } from '~/types';
+import type {
+  Hospital,
+  Unit,
+  StudentWithUnit,
+  RotationGroup,
+  Consultant,
+  Assessment,
+} from '~/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +30,6 @@ import {
   Users,
   BarChart3,
 } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
@@ -37,43 +43,41 @@ const yearId = route.params.yearId as string;
 const groupId = route.params.groupId as string;
 const unitId = route.params.unitId as string;
 
-// Get mock data
-const { academicYears, units, students, instructors, assessments } =
-  useMockData();
+const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+const units = inject<Ref<Unit[]>>('units')!;
+const students = inject<Ref<StudentWithUnit[]>>('students')!;
+const consultants = inject<Ref<Consultant[]>>('consultants')!;
+const assessments = inject<Ref<Assessment[]>>('assessments')!;
+const refreshStudents = inject<() => Promise<void>>('refreshStudents')!;
+const refreshUnits = inject<() => Promise<void>>('refreshUnits')!;
 
-// Find relevant data
-const academicYear = computed(() => academicYears.find((y) => y.id === yearId));
 const rotationGroup = computed(() =>
-  academicYear.value?.rotationGroups.find((g) => g.id === groupId)
+  rotationGroups.value?.find((g) => g.id === groupId)
 );
-const unit = computed(() => units.find((c) => c.id === unitId));
+
+const unit = computed(() => units.value.find((u) => u.id === unitId));
+
 const consultant = computed(() =>
-  instructors.find((i) => i.id === unit.value?.instructorId)
+  consultants.value.find((c) => c.id === unit.value?.consultantId)
 );
 
-// Get students in this unit
 const unitStudents = computed(() =>
-  students.filter((s) => s.unitId === unitId)
+  students.value.filter((s) => s.unitId === unitId)
 );
 
-// Get unassigned students in this group
 const unassignedStudents = computed(() =>
-  students.filter(
-    (s) =>
-      s.rotationGroupId === groupId && s.academicYearId === yearId && !s.unitId
-  )
+  students.value.filter((s) => s.rotationGroupId === groupId && !s.unitId)
 );
 
-// Calculate grading stats
 const gradedStudents = computed(() =>
   unitStudents.value.filter((s) =>
-    assessments.some((a) => a.studentId === s.id)
+    assessments.value.some((a) => a.studentId === s.id)
   )
 );
 
 const averageScore = computed(() => {
   const studentAssessments = unitStudents.value
-    .map((s) => assessments.find((a) => a.studentId === s.id))
+    .map((s) => assessments.value.find((a) => a.studentId === s.id))
     .filter(Boolean);
 
   if (studentAssessments.length === 0) return null;
@@ -81,11 +85,11 @@ const averageScore = computed(() => {
   const totalScores = studentAssessments.map((a) => {
     if (!a) return 0;
     return (
-      (a.criterion1 +
-        a.criterion2 +
-        a.criterion3 +
-        a.criterion4 +
-        a.criterion5) /
+      (a.attendance +
+        a.factualKnowledge +
+        a.clinicalApproach +
+        a.reliabilityDeportment +
+        a.initiative) /
       5
     );
   });
@@ -95,47 +99,82 @@ const averageScore = computed(() => {
   ).toFixed(1);
 });
 
-// Search
 const searchTerm = ref('');
 const filteredStudents = computed(() =>
   unitStudents.value.filter(
     (s) =>
-      s.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      s.firstName.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      s.lastName.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       s.studentId.toLowerCase().includes(searchTerm.value.toLowerCase())
   )
 );
 
-// Dialog states
 const editUnitOpen = ref(false);
 const addStudentsOpen = ref(false);
 const removeStudentDialogOpen = ref(false);
 const removeStudentId = ref<string | null>(null);
 const deleteUnitDialogOpen = ref(false);
 
-// Handlers
-const handleEditUnit = (form: { hospital: Hospital; instructorId: string }) => {
+const handleEditUnit = async (form: {
+  hospital: Hospital;
+  consultantId: string;
+}) => {
   if (!unit.value) return;
-  // updateUnit(unit.value.id, form)
-  console.log('Update unit:', unit.value.id, form);
-  editUnitOpen.value = false;
-  toast.success('Unit updated successfully');
+
+  try {
+    await $fetch(`/api/units/${unit.value.id}`, {
+      method: 'PATCH',
+      body: form,
+    });
+
+    toast.success('Unit updated successfully');
+    editUnitOpen.value = false;
+    await refreshUnits();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to update unit');
+  }
 };
 
-const handleAddStudents = (studentIds: string[]) => {
+const handleAddStudents = async (studentIds: string[]) => {
   if (!unit.value || studentIds.length === 0) return;
-  // addStudentsToUnit(studentIds, unit.value.id)
-  console.log('Add students to unit:', studentIds);
-  addStudentsOpen.value = false;
-  toast.success(`${studentIds.length} student(s) added to unit`);
+
+  try {
+    await Promise.all(
+      studentIds.map((studentId) =>
+        $fetch(`/api/students/${studentId}`, {
+          method: 'PATCH',
+          body: { unitId: unit.value!.id },
+        })
+      )
+    );
+
+    toast.success(`${studentIds.length} student(s) added to unit`);
+    addStudentsOpen.value = false;
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to add students');
+  }
 };
 
-const handleRemoveStudent = () => {
-  if (!removeStudentId.value || !unit.value) return;
-  // removeStudentFromUnit(removeStudentId.value, unit.value.id)
-  console.log('Remove student from unit:', removeStudentId.value);
-  removeStudentDialogOpen.value = false;
-  removeStudentId.value = null;
-  toast.success('Student removed from unit');
+const handleRemoveStudent = async () => {
+  if (!removeStudentId.value) return;
+
+  try {
+    await $fetch(`/api/students/${removeStudentId.value}`, {
+      method: 'PATCH',
+      body: { unitId: null },
+    });
+
+    toast.success('Student removed from unit');
+    removeStudentDialogOpen.value = false;
+    removeStudentId.value = null;
+    await refreshStudents();
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to remove student');
+  }
 };
 
 const openRemoveStudentDialog = (studentId: string) => {
@@ -143,21 +182,30 @@ const openRemoveStudentDialog = (studentId: string) => {
   removeStudentDialogOpen.value = true;
 };
 
-const handleDeleteUnit = () => {
+const handleDeleteUnit = async () => {
   if (!unit.value) return;
 
   const unitName = unit.value.name;
-  // deleteUnit(unit.value.id)
-  console.log('Delete unit:', unit.value.id);
 
-  toast.success(`Unit ${unitName} deleted successfully`);
+  try {
+    await $fetch(`/api/units/${unit.value.id}`, {
+      method: 'DELETE',
+    });
 
-  // Navigate back to group detail page
-  navigateTo(`/dashboard/class/${yearId}/groups/${groupId}`);
+    toast.success(`Unit ${unitName} deleted successfully`);
+    await refreshUnits();
+    await refreshStudents();
+
+    // Navigate back to group detail page
+    navigateTo(`/dashboard/class/${yearId}/groups/${groupId}`);
+  } catch (error) {
+    const err = error as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Failed to delete unit');
+  }
 };
 
 // 404 handling
-if (!academicYear.value || !rotationGroup.value || !unit.value) {
+if (!rotationGroup.value || !unit.value) {
   throw createError({ statusCode: 404, message: 'Unit not found' });
 }
 </script>
@@ -322,7 +370,9 @@ if (!academicYear.value || !rotationGroup.value || !unit.value) {
               :key="student.id"
               class="border-border"
             >
-              <TableCell class="font-medium">{{ student.name }}</TableCell>
+              <TableCell class="font-medium">
+                {{ student.firstName }} {{ student.lastName }}
+              </TableCell>
               <TableCell class="font-mono text-sm text-muted-foreground">
                 {{ student.studentId }}
               </TableCell>
@@ -349,11 +399,11 @@ if (!academicYear.value || !rotationGroup.value || !unit.value) {
                     );
                     if (!assessment) return '-';
                     const score = (
-                      (assessment.criterion1 +
-                        assessment.criterion2 +
-                        assessment.criterion3 +
-                        assessment.criterion4 +
-                        assessment.criterion5) /
+                      (assessment.attendance +
+                        assessment.factualKnowledge +
+                        assessment.clinicalApproach +
+                        assessment.reliabilityDeportment +
+                        assessment.initiative) /
                       5
                     ).toFixed(1);
                     return `${score}/100`;
@@ -389,7 +439,7 @@ if (!academicYear.value || !rotationGroup.value || !unit.value) {
       v-if="unit"
       v-model:open="editUnitOpen"
       :unit="unit"
-      :instructors="instructors"
+      :consultants="consultants"
       @submit="handleEditUnit"
     />
 
