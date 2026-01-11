@@ -8,14 +8,15 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-vue-next';
-import { useMockData } from '~/composables/useMockData';
 import { useAssessmentData } from '~/composables/useAssessmentData';
+import type { Assessment, StudentWithUnit } from '~/types';
 
 definePageMeta({
   layout: 'dashboard',
 });
-// Get mock data (replace with API calls later)
-const { students, assessments } = useMockData();
+
+const students = inject<Ref<StudentWithUnit[]>>('students')!;
+const assessments = inject<Ref<Assessment[]>>('assessments')!;
 
 // Process assessment data
 const { searchTerm, filteredStudents } = useAssessmentData(

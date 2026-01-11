@@ -1,52 +1,65 @@
 <script setup lang="ts">
-import type { Hospital, Instructor, Unit } from '~/types'
-import { HOSPITALS } from '~/types'
+import type { Hospital, Consultant, Unit } from '~/types';
+import { HOSPITALS } from '~/types';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AlertTriangle } from 'lucide-vue-next'
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { AlertTriangle } from 'lucide-vue-next';
 
 interface Props {
-  open: boolean
-  unit: Unit
-  instructors: Instructor[]
+  open: boolean;
+  unit: Unit;
+  consultants: Consultant[];
 }
 
 interface Emits {
-  (e: 'update:open', value: boolean): void
-  (e: 'submit', form: { hospital: Hospital; instructorId: string }): void
+  (e: 'update:open', value: boolean): void;
+  (e: 'submit', form: { hospital: Hospital; consultantId: string }): void;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
 const form = ref({
   hospital: props.unit.hospital,
-  instructorId: props.unit.instructorId || '',
-})
+  consultantId: props.unit.consultantId || '',
+});
 
 // Update form when unit changes
-watch(() => props.unit, (unit) => {
-  form.value = {
-    hospital: unit.hospital,
-    instructorId: unit.instructorId || '',
-  }
-}, { immediate: true })
+watch(
+  () => props.unit,
+  (unit) => {
+    form.value = {
+      hospital: unit.hospital,
+      consultantId: unit.consultantId || '',
+    };
+  },
+  { immediate: true }
+);
 
 const hasConsultantChanged = computed(() => {
-  return form.value.instructorId !== props.unit.instructorId && props.unit.instructorId
-})
+  return (
+    form.value.consultantId !== props.unit.consultantId &&
+    props.unit.consultantId
+  );
+});
 
 const handleSubmit = () => {
-  emit('submit', form.value)
-}
+  emit('submit', form.value);
+};
 </script>
 
 <template>
@@ -77,17 +90,17 @@ const handleSubmit = () => {
 
         <div class="space-y-2">
           <Label for="consultant">Consultant</Label>
-          <Select v-model="form.instructorId">
+          <Select v-model="form.consultantId">
             <SelectTrigger>
               <SelectValue placeholder="Select consultant..." />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
-                v-for="instructor in instructors"
-                :key="instructor.id"
-                :value="instructor.id"
+                v-for="consultant in consultants"
+                :key="consultant.id"
+                :value="consultant.id"
               >
-                {{ instructor.name }}
+                {{ consultant.name }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -108,9 +121,7 @@ const handleSubmit = () => {
         <Button variant="outline" @click="emit('update:open', false)">
           Cancel
         </Button>
-        <Button @click="handleSubmit">
-          Save Changes
-        </Button>
+        <Button @click="handleSubmit"> Save Changes </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

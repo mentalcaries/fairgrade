@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import type { AcademicYear, RotationGroup } from '~/types'
+import type { Class, RotationGroup } from '~/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from 'lucide-vue-next'
 
 interface Props {
-  activeYear: AcademicYear | undefined
+  activeYear: Class | undefined
 }
 
 const props = defineProps<Props>()
+
+const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
 
 const currentRotations = computed<RotationGroup[]>(() => {
   if (!props.activeYear) return []
   
   const today = new Date()
-  return props.activeYear.rotationGroups.filter((group) => {
+  return rotationGroups.value.filter((group) => {
+    if (!group.startDate || !group.endDate) return false
     const startDate = new Date(group.startDate)
     const endDate = new Date(group.endDate)
     return today >= startDate && today <= endDate

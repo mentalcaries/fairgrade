@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Student } from '~/types';
+import type { StudentWithUnit } from '~/types';
 import {
   Table,
   TableBody,
@@ -12,12 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 
 interface Props {
-  students: Student[];
-  getUnitLabel: (student: Student) => string | null;
+  students: StudentWithUnit[];
 }
 
 interface Emits {
-  (e: 'edit', student: Student): void;
+  (e: 'edit', student: StudentWithUnit): void;
   (e: 'delete', studentId: string): void;
 }
 
@@ -49,18 +48,17 @@ const emit = defineEmits<Emits>();
         </TableCell>
         <TableCell>
           <span
-            v-if="getUnitLabel(student)"
+            v-if="student.unit"
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
           >
-            {{ getUnitLabel(student) }}
+            {{ student.unit.name }}
           </span>
           <span
-            v-else-if="student.rotationGroupId"
+            v-else
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
           >
             Unassigned
           </span>
-          <span v-else class="text-muted-foreground">-</span>
         </TableCell>
         <TableCell class="text-right">
           <Button variant="ghost" size="icon" @click="emit('edit', student)">

@@ -1,35 +1,44 @@
 <script setup lang="ts">
-import { useMockData } from '@/composables/useMockData'
-import { useDashboardStats } from '~/composables/useDashboardStats'
-import { usePendingActions } from '~/composables/usePendingActions'
+import type {
+  Class,
+  StudentWithUnit,
+  Consultant,
+  Unit,
+  Assessment,
+} from '~/types';
+import { useDashboardStats } from '~/composables/useDashboardStats';
+import { usePendingActions } from '~/composables/usePendingActions';
 
 definePageMeta({
-  layout:'dashboard'
-})
-// Get mock data (replace with API calls later)
-const { students, consultants, assessments, academicYears, units } = useMockData()
+  layout: 'dashboard',
+});
 
-// Get active academic year
-const activeYear = computed(() => academicYears.find((y) => y.isActive))
+const classes = inject<Ref<Class[]>>('classes')!;
+const students = inject<Ref<StudentWithUnit[]>>('students')!;
+const consultants = inject<Ref<Consultant[]>>('consultants')!;
+const units = inject<Ref<Unit[]>>('units')!;
+const assessments = inject<Ref<Assessment[]>>('assessments')!;
 
-// Calculate stats
-const { stats } = useDashboardStats(students, consultants, assessments)
+const activeYear = computed(() => classes.value?.find((y) => y.isActive));
 
-// Calculate pending actions
+const { stats } = useDashboardStats(students, consultants, assessments);
+
 const { pendingActions } = usePendingActions(
   students,
   consultants,
   units,
   assessments,
-  activeYear.value
-)
+  activeYear
+);
 </script>
 
 <template>
   <div class="space-y-8">
     <div>
       <h1 class="text-3xl font-bold text-foreground">Dashboard</h1>
-      <p class="text-muted-foreground mt-1">Overview of your grading platform</p>
+      <p class="text-muted-foreground mt-1">
+        Overview of your grading platform
+      </p>
     </div>
 
     <!-- Stats Grid -->
