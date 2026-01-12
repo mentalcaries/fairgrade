@@ -11,8 +11,11 @@ import {
   Menu,
   X,
   Calendar,
+  ExternalLink,
+  BookOpenCheck,
 } from 'lucide-vue-next';
-import { signOut, useSession } from '~/lib/auth-client';
+import { signOut } from '~/lib/auth-client';
+import type { Consultant } from '~/types';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -20,13 +23,12 @@ const navItems = [
   { href: '/dashboard/class', label: 'Class Management', icon: Calendar },
   { href: '/dashboard/consultants', label: 'Consultants', icon: UserCog },
   { href: '/dashboard/students', label: 'Students', icon: Users },
+  { href: '/grading', label: 'Grading', icon: BookOpenCheck },
 ];
 
 const mobileOpen = ref(false);
 
-// Mock user - replace with actual auth composable
-const session = useSession();
-const user = session.value.data?.user;
+const currentUser = inject<Ref<Consultant>>('currentUser')!;
 
 const handleLogout = async () => {
   await signOut();
@@ -84,6 +86,7 @@ const handleLogout = async () => {
             v-for="item in navItems"
             :key="item.href"
             :to="item.href"
+            :target="item.label ==='Grading' ? '_blank' : undefined"
             :class="
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
@@ -95,6 +98,7 @@ const handleLogout = async () => {
           >
             <component :is="item.icon" class="h-5 w-5" />
             {{ item.label }}
+            <ExternalLink v-if="item.label === 'Grading'" class="h-4 w-4" />
           </NuxtLink>
         </nav>
 
@@ -104,15 +108,15 @@ const handleLogout = async () => {
               class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
             >
               <span class="text-sm font-medium text-primary">
-                {{ user?.name?.charAt(0) || 'A' }}
+                {{ currentUser.name?.charAt(0) || 'A' }}
               </span>
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-sidebar-foreground truncate">
-                {{ user?.name || 'Admin' }}
+                {{ currentUser?.name || 'Admin' }}
               </p>
               <p class="text-xs text-muted-foreground truncate">
-                {{ user?.email }}
+                {{ currentUser?.email }}
               </p>
             </div>
           </div>

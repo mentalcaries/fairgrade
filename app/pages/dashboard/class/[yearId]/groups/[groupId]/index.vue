@@ -288,11 +288,11 @@ const openAddUnitDialog = (hospital?: Hospital) => {
         <div class="flex gap-3">
           <Button variant="outline" @click="bulkImportOpen = true">
             <Upload class="h-4 w-4 mr-2" />
-            Bulk Import Students
+            Add Multiple Students
           </Button>
           <Button @click="addStudentOpen = true">
             <Plus class="h-4 w-4 mr-2" />
-            Add Student
+            Add Individual Student
           </Button>
         </div>
       </div>

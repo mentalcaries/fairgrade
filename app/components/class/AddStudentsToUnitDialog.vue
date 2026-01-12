@@ -41,7 +41,7 @@ const toggleStudent = (studentId: string) => {
 
 const handleSubmit = () => {
   emit('submit', selectedStudentIds.value);
-  selectedStudentIds.value = [];
+  // selectedStudentIds.value = [];
 };
 
 // Reset when dialog closes
@@ -79,7 +79,7 @@ watch(
                 <Checkbox
                   :id="`add-student-${student.id}`"
                   :checked="selectedStudentIds.includes(student.id)"
-                  @update:checked="toggleStudent(student.id)"
+                  @click="toggleStudent(student.id)"
                 />
                 <label
                   :for="`add-student-${student.id}`"

@@ -29,6 +29,7 @@ import {
   User,
   Users,
   BarChart3,
+  UserX,
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
@@ -251,7 +252,7 @@ if (!rotationGroup.value || !unit.value) {
           </Button>
           <Button @click="addStudentsOpen = true">
             <Plus class="h-4 w-4 mr-2" />
-            Add Students
+            Assign Students
           </Button>
         </div>
       </div>
@@ -360,8 +361,7 @@ if (!rotationGroup.value || !unit.value) {
               <TableHead>Name</TableHead>
               <TableHead>Student ID</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Final Score</TableHead>
-              <TableHead class="text-right">Actions</TableHead>
+              <TableHead class="text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -391,41 +391,15 @@ if (!rotationGroup.value || !unit.value) {
                   Pending
                 </span>
               </TableCell>
-              <TableCell>
-                {{
-                  (() => {
-                    const assessment = assessments.find(
-                      (a) => a.studentId === student.id
-                    );
-                    if (!assessment) return '-';
-                    const score = (
-                      (assessment.attendance +
-                        assessment.factualKnowledge +
-                        assessment.clinicalApproach +
-                        assessment.reliabilityDeportment +
-                        assessment.initiative) /
-                      5
-                    ).toFixed(1);
-                    return `${score}/100`;
-                  })()
-                }}
-              </TableCell>
+
               <TableCell class="text-right">
-                <Button
-                  v-if="assessments.some((a) => a.studentId === student.id)"
-                  variant="ghost"
-                  size="sm"
-                  class="mr-2"
-                >
-                  View Assessment
-                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   class="text-destructive hover:text-destructive"
                   @click="openRemoveStudentDialog(student.id)"
                 >
-                  <Trash2 class="h-4 w-4" />
+                  <UserX class="h-4 w-4" />
                 </Button>
               </TableCell>
             </TableRow>

@@ -21,7 +21,7 @@ definePageMeta({
 
 const consultants = inject<Ref<Consultant[]>>('consultants')!;
 const refreshConsultants = inject<() => Promise<void>>('refreshConsultants')!;
-const { data: currentUser } = await useFetch('/api/consultants/me');
+const currentUser = inject<Ref<Consultant>>('currentUser')!;
 
 const { searchTerm, filteredConsultants } = useConsultantSorting(consultants);
 

@@ -50,6 +50,8 @@ const { data: assessments, refresh: refresAssessments } = await useFetch<
   default: () => [],
 });
 
+const { data: currentUser } = await useFetch('/api/consultants/me');
+
 provide('classes', classes);
 provide('rotationGroups', rotationGroups);
 provide('refreshClasses', refreshClasses);
@@ -62,6 +64,7 @@ provide('refreshStudents', refreshStudents);
 provide('refreshUnits', refreshUnits);
 provide('assessments', assessments);
 provide('refreshAssessments', refresAssessments);
+provide('currentUser', currentUser);
 
 const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();
 </script>
