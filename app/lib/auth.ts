@@ -1,12 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from './database';
-import {  magicLink } from 'better-auth/plugins';
+import { magicLink } from 'better-auth/plugins';
 import * as schema from '~/lib/database/schema';
 import { verificationEmailHtml } from './email/verify-email-template';
 import { resend } from './email/email-client';
 
 export const auth = betterAuth({
+  appName: 'FairGrade',
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
