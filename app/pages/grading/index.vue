@@ -162,8 +162,6 @@ const average = computed(() =>
   ).toFixed(1)
 );
 
-const finalScore = computed(() => (parseFloat(average.value) * 0.2).toFixed(2));
-
 const getScoreColor = (score: number) => {
   if (score >= 80) return 'text-emerald-600';
   if (score >= 50) return 'text-amber-600';
@@ -345,15 +343,6 @@ const availableStudents = computed(() =>
                   {{ average }}
                 </span>
               </div>
-
-              <div
-                class="flex items-center justify-between p-4 rounded-lg bg-primary/10"
-              >
-                <span class="font-medium">Final Score (out of 20)</span>
-                <span class="text-3xl font-bold text-primary">
-                  {{ finalScore }}
-                </span>
-              </div>
             </div>
 
             <Button class="w-full" size="lg" @click="openSubmitDialog">
@@ -367,7 +356,6 @@ const availableStudents = computed(() =>
       v-model:open="submitConfirmOpen"
       :student-name="selectedStudentName"
       :average-score="average"
-      :final-score="finalScore"
       :loading="isSubmitting"
       @confirm="handleSubmit"
     />

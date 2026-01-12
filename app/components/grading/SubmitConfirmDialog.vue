@@ -14,7 +14,6 @@ interface Props {
   open: boolean;
   studentName: string;
   averageScore: string;
-  finalScore: string;
   loading?: boolean;
 }
 
@@ -58,12 +57,6 @@ const emit = defineEmits<Emits>();
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium">Average Score</span>
             <span class="text-2xl font-bold">{{ averageScore }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">Final Score (out of 20)</span>
-            <span class="text-2xl font-bold text-primary">{{
-              finalScore
-            }}</span>
           </div>
         </div>
       </div>
