@@ -4,39 +4,19 @@ import { eq } from 'drizzle-orm';
 import { updateAssessmentSchema } from '~~/server/utils/validation/assessments';
 
 export default defineEventHandler(async (event) => {
+  const id = getRouterParam(event, 'id');
+
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      message: 'Assessment ID is required',
+    });
+  }
+
   try {
-    const id = getRouterParam(event, 'id');
-
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        message: 'Assessment ID is required',
-      });
-    }
-
     const body = await readBody(event);
     const validatedData = updateAssessmentSchema.parse(body);
 
-    // Check if assessment exists
-    const [existingAssessment] = await db
-      .select()
-      .from(assessments)
-      .where(eq(assessments.id, id))
-      .limit(1);
-
-    if (!existingAssessment) {
-      throw createError({
-        statusCode: 404,
-        message: 'Assessment not found',
-      });
-    }
-
-    // TODO: Add auth check here
-    // - If user is consultant AND assessment.isCompleted === true, deny
-    // - If user is admin, allow
-    // For now, allow all updates (auth will be added later)
-
-    // Update assessment
     const [updatedAssessment] = await db
       .update(assessments)
       .set({
@@ -46,9 +26,15 @@ export default defineEventHandler(async (event) => {
       .where(eq(assessments.id, id))
       .returning();
 
+    if (!updatedAssessment) {
+      throw createError({
+        statusCode: 404,
+        message: 'Assessment not found',
+      });
+    }
+
     return updatedAssessment;
   } catch (error) {
-    // Handle Zod validation errors
     if (error instanceof Error && error.name === 'ZodError') {
       throw createError({
         statusCode: 400,
