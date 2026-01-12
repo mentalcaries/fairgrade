@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StudentWithGrades } from '~/composables/useAssessmentData';
+import type { StudentWithGrades } from '~/types';
 import {
   Table,
   TableBody,
@@ -8,13 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { getScoreColour } from '~/utils/scoreColour';
+import { Pencil } from 'lucide-vue-next';
 
 interface Props {
   students: StudentWithGrades[];
 }
 
+interface Emits {
+  (e: 'edit', student: StudentWithGrades): void;
+}
+
 defineProps<Props>();
+const emit = defineEmits<Emits>();
 </script>
 
 <template>
@@ -22,14 +29,25 @@ defineProps<Props>();
     <Table>
       <TableHeader>
         <TableRow class="border-border">
-          <TableHead>Student Name</TableHead>
-          <TableHead>Student ID</TableHead>
-          <TableHead class="text-center">Technical Skills</TableHead>
-          <TableHead class="text-center">Communication</TableHead>
-          <TableHead class="text-center">Teamwork</TableHead>
-          <TableHead class="text-center">Problem Solving</TableHead>
-          <TableHead class="text-center">Creativity</TableHead>
-          <TableHead class="text-center">Average</TableHead>
+          <TableHead class="min-w-[130px]">Student Name</TableHead>
+          <TableHead class="min-w-[110px]">Student ID</TableHead>
+          <TableHead class="min-w-[120px]">Supervisor</TableHead>
+          <TableHead class="text-center w-24">Attendance</TableHead>
+          <TableHead class="text-center w-24">
+            <span class="whitespace-normal">Factual Knowledge</span>
+          </TableHead>
+          <TableHead class="text-center w-24">
+            <span class="whitespace-normal">Clinical Approach</span>
+          </TableHead>
+          <TableHead class="text-center w-24">
+            <span class="whitespace-normal">Reliability and Deportment</span>
+          </TableHead>
+          <TableHead class="text-center w-24">Initiative</TableHead>
+          <TableHead class="text-center w-20">Average</TableHead>
+          <TableHead class="text-center w-24">
+            <span class="whitespace-normal">Final (out of 20)</span>
+          </TableHead>
+          <TableHead class="text-right w-20">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -38,50 +56,78 @@ defineProps<Props>();
           :key="student.id"
           class="border-border"
         >
-          <TableCell class="font-medium">{{ student.name }}</TableCell>
+          <TableCell class="font-semibold">
+            {{ student.firstName }} {{ student.lastName }}
+          </TableCell>
           <TableCell class="font-mono text-sm text-muted-foreground">
             {{ student.studentId }}
           </TableCell>
-          <TableCell
-            :class="['text-center', getScoreColour(student.criterion1)]"
-          >
-            {{ student.criterion1 ?? '-' }}
+          <TableCell class="font-medium">
+            {{ student.consultantName || '-' }}
           </TableCell>
           <TableCell
-            :class="['text-center', getScoreColour(student.criterion2)]"
+            :class="['text-center', getScoreColour(student.attendance)]"
           >
-            {{ student.criterion2 ?? '-' }}
+            {{ student.attendance ?? '-' }}
           </TableCell>
           <TableCell
-            :class="['text-center', getScoreColour(student.criterion3)]"
+            :class="['text-center', getScoreColour(student.factualKnowledge)]"
           >
-            {{ student.criterion3 ?? '-' }}
+            {{ student.factualKnowledge ?? '-' }}
           </TableCell>
           <TableCell
-            :class="['text-center', getScoreColour(student.criterion4)]"
+            :class="['text-center', getScoreColour(student.clinicalApproach)]"
           >
-            {{ student.criterion4 ?? '-' }}
+            {{ student.clinicalApproach ?? '-' }}
           </TableCell>
           <TableCell
-            :class="['text-center', getScoreColour(student.criterion5)]"
+            :class="[
+              'text-center',
+              getScoreColour(student.reliabilityDeportment),
+            ]"
           >
-            {{ student.criterion5 ?? '-' }}
+            {{ student.reliabilityDeportment ?? '-' }}
+          </TableCell>
+          <TableCell
+            :class="['text-center', getScoreColour(student.initiative)]"
+          >
+            {{ student.initiative ?? '-' }}
           </TableCell>
           <TableCell class="text-center">
             <span
               v-if="student.average"
               :class="[
                 'font-semibold',
-                getScoreColour(Number.parseFloat(student.average)),
+                getScoreColour(parseFloat(student.average)),
               ]"
             >
               {{ student.average }}
             </span>
             <span v-else class="text-muted-foreground">-</span>
           </TableCell>
+          <TableCell class="text-center">
+            <span v-if="student.finalScore" class="font-semibold text-primary">
+              {{ student.finalScore }}
+            </span>
+            <span v-else class="text-muted-foreground">-</span>
+          </TableCell>
+          <TableCell class="text-right">
+            <Button
+              v-if="student.attendance !== null"
+              variant="ghost"
+              size="sm"
+              @click="emit('edit', student)"
+            >
+              <Pencil class="h-4 w-4" />
+            </Button>
+            <!-- <span v-else class="text-muted-foreground text-sm">No assessment</span> -->
+          </TableCell>
         </TableRow>
         <TableRow v-if="students.length === 0">
-          <TableCell colspan="8" class="text-center py-8 text-muted-foreground">
+          <TableCell
+            colspan="10"
+            class="text-center py-8 text-muted-foreground"
+          >
             No students found
           </TableCell>
         </TableRow>

@@ -39,7 +39,9 @@ const { data: units, refresh: refreshUnits } = await useFetch<Unit[]>(
   }
 );
 
-const { data: assessments } = await useFetch<Assessment[]>('/api/assessments', {
+const { data: assessments, refresh: refresAssessments } = await useFetch<
+  Assessment[]
+>('/api/assessments', {
   query: computed(() => ({ classId: activeClass.value?.id || '' })),
   watch: [activeClass],
   default: () => [],
@@ -55,6 +57,7 @@ provide('units', units);
 provide('refreshStudents', refreshStudents);
 provide('refreshUnits', refreshUnits);
 provide('assessments', assessments);
+provide('refreshAssessments', refresAssessments);
 
 const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();
 </script>

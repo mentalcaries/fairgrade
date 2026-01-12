@@ -32,6 +32,17 @@ export interface StudentWithUnit extends Student {
   unit: Unit | null;
 }
 
+export interface StudentWithGrades extends StudentWithUnit {
+  attendance: number | null;
+  factualKnowledge: number | null;
+  clinicalApproach: number | null;
+  reliabilityDeportment: number | null;
+  initiative: number | null;
+  average: string | null;
+  finalScore: string | null;
+  consultantName: string | null;
+}
+
 export interface Consultant {
   id: string;
   userId: string | null;
@@ -51,6 +62,8 @@ export interface Assessment {
   initiative: number;
   submittedBy: string;
   submittedAt: string;
+  notes: string;
+  consultantId: string;
 }
 
 export interface RotationGroup {

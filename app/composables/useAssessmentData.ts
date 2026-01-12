@@ -1,38 +1,41 @@
-import type { Student, Assessment } from '~/types'
+import type { StudentWithUnit, Assessment, Consultant, StudentWithGrades } from '~/types'
 
-export interface StudentWithGrades extends Student {
-  criterion1: number | null
-  criterion2: number | null
-  criterion3: number | null
-  criterion4: number | null
-  criterion5: number | null
-  average: string | null
-}
 
-export function useAssessmentData(students: Student[], assessments: Assessment[]) {
+export function useAssessmentData(
+  students: Ref<StudentWithUnit[]>, 
+  assessments: Ref<Assessment[]>,
+  consultants: Ref<Consultant[]>
+) {
   const searchTerm = ref('')
 
   const studentsWithGrades = computed<StudentWithGrades[]>(() => {
-    return students.map((student) => {
-      const assessment = assessments.find((a) => a.studentId === student.id)
+    return students.value.map((student) => {
+      const assessment = assessments.value.find((a) => a.studentId === student.id)
+      const consultant = assessment 
+        ? consultants.value.find((c) => c.id === assessment.consultantId)
+        : null
       
+      const average = assessment
+        ? (
+            (assessment.attendance +
+              assessment.factualKnowledge +
+              assessment.clinicalApproach +
+              assessment.reliabilityDeportment +
+              assessment.initiative) /
+            5
+          )
+        : null
+
       return {
         ...student,
-        criterion1: assessment?.criterion1 ?? null,
-        criterion2: assessment?.criterion2 ?? null,
-        criterion3: assessment?.criterion3 ?? null,
-        criterion4: assessment?.criterion4 ?? null,
-        criterion5: assessment?.criterion5 ?? null,
-        average: assessment
-          ? (
-              (assessment.criterion1 +
-                assessment.criterion2 +
-                assessment.criterion3 +
-                assessment.criterion4 +
-                assessment.criterion5) /
-              5
-            ).toFixed(1)
-          : null,
+        attendance: assessment?.attendance ?? null,
+        factualKnowledge: assessment?.factualKnowledge ?? null,
+        clinicalApproach: assessment?.clinicalApproach ?? null,
+        reliabilityDeportment: assessment?.reliabilityDeportment ?? null,
+        initiative: assessment?.initiative ?? null,
+        average: average ? average.toFixed(1) : null,
+        finalScore: average ? (average * 0.2).toFixed(2) : null,
+        consultantName: consultant?.name || null,
       }
     })
   })
@@ -40,7 +43,8 @@ export function useAssessmentData(students: Student[], assessments: Assessment[]
   const filteredStudents = computed(() => {
     return studentsWithGrades.value.filter(
       (s) =>
-        s.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        s.firstName.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        s.lastName.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
         s.studentId.toLowerCase().includes(searchTerm.value.toLowerCase())
     )
   })
