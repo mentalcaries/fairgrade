@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-vue-next';
+import { Search, Download } from 'lucide-vue-next';
 import { useAssessmentData } from '~/composables/useAssessmentData';
 import type {
   Assessment,
@@ -16,6 +16,7 @@ import type {
   StudentWithGrades,
 } from '~/types';
 import { toast } from 'vue-sonner';
+import { exportAssessmentsToExcel } from '~/lib/export-excel';
 
 definePageMeta({
   layout: 'dashboard',
@@ -74,6 +75,11 @@ const handleSave = async (data: {
     isSaving.value = false;
   }
 };
+
+const exportToExcel = () => {
+  exportAssessmentsToExcel(filteredStudents.value);
+  toast.success('Assessment data exported successfully');
+};
 </script>
 
 <template>
@@ -97,15 +103,22 @@ const handleSave = async (data: {
             </CardDescription>
           </div>
 
-          <div class="relative w-full sm:w-72">
-            <Search
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-            />
-            <Input
-              v-model="searchTerm"
-              placeholder="Search by name or ID..."
-              class="pl-10"
-            />
+          <div class="flex items-center gap-3">
+            <div class="relative w-full sm:w-72">
+              <Search
+                class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              />
+              <Input
+                v-model="searchTerm"
+                placeholder="Search by name or ID..."
+                class="pl-10"
+              />
+            </div>
+
+            <Button variant="outline" @click="exportToExcel">
+              <Download class="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
         </div>
       </CardHeader>
