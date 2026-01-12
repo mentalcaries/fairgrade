@@ -70,11 +70,12 @@ export function usePendingActions(
     );
 
     if (consultantsWithoutGrades.length > 0) {
+      const isPlural = consultantsWithoutGrades.length > 1;
       actions.push({
         id: 'no-grades',
         message: `${consultantsWithoutGrades.length} consultant${
-          consultantsWithoutGrades.length > 1 ? 's' : ''
-        } haven't submitted grades`,
+          isPlural ? 's' : ''
+        } ${isPlural ? "haven't" : "hasn't"} submitted grades`,
         href: '/dashboard/consultants',
         count: consultantsWithoutGrades.length,
       });
