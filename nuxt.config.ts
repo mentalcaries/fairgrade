@@ -31,4 +31,8 @@ export default defineNuxtConfig({
      */
     componentDir: '@/components/ui',
   },
+  sourcemap: {
+    server: true,
+    client: true,
+  },
 });
