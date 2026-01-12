@@ -61,7 +61,7 @@ const handleCreateYear = async (data: WizardData) => {
 
     toast.success('Academic year created successfully');
     await refreshClasses();
-    navigateTo(`/dashboard/class/${response.id}`);
+    navigateTo(`/dashboard/class/`);
   } catch (error) {
     const message =
       error instanceof FetchError
