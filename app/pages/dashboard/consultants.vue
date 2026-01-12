@@ -14,19 +14,14 @@ import { Plus, Search } from 'lucide-vue-next';
 import { useConsultantSorting } from '~/composables/useConsultantSorting';
 import { toast } from 'vue-sonner';
 import type { ConsultantForm } from '~/types/forms';
-import type { Spinner } from '~/components/ui/spinner';
 
 definePageMeta({
   layout: 'dashboard',
 });
 
-const {
-  data: consultants,
-  refresh,
-  pending,
-} = await useFetch('/api/consultants', {
-  default: () => [],
-});
+const consultants = inject<Ref<Consultant[]>>('consultants')!;
+const refreshConsultants = inject<() => Promise<void>>('refreshConsultants')!;
+const { data: currentUser } = await useFetch('/api/consultants/me');
 
 const { searchTerm, filteredConsultants } = useConsultantSorting(consultants);
 
@@ -60,7 +55,7 @@ const handleAddSubmit = async (form: ConsultantForm) => {
       toast.success("Consultant added. Don't forget to invite them.");
     }
     addDialogOpen.value = false;
-    await refresh();
+    await refreshConsultants();
   } catch (error) {
     const message =
       error instanceof FetchError ? error.statusMessage : 'Unknown error';
@@ -78,7 +73,7 @@ const handleEditSubmit = async (form: Partial<ConsultantForm>) => {
       body: form,
     });
     editDialogOpen.value = false;
-    await refresh();
+    await refreshConsultants();
     toast.success('Consultant updated successfully');
   } catch (error) {
     console.error('Failed to delete consultant:', error);
@@ -99,7 +94,7 @@ const handleDelete = async () => {
 
     deleteDialogOpen.value = false;
     deletingConsultant.value = null;
-    await refresh();
+    await refreshConsultants();
     toast.success('Consultant deleted');
   } catch (error) {
     console.error('Failed to delete consultant:', error);
@@ -129,8 +124,7 @@ const sendEmailInvite = async (email: string, name: string) => {
 </script>
 
 <template>
-  <Spinner v-if="pending" />
-  <div v-else class="space-y-6">
+  <div class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold text-foreground">Consultants</h1>
       <p class="text-muted-foreground mt-1">
@@ -173,6 +167,7 @@ const sendEmailInvite = async (email: string, name: string) => {
         <ConsultantsTable
           :consultants="filteredConsultants"
           :sending-invite-email="sendingInviteEmail"
+          :current-user-id="currentUser?.id"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
           @send-invite="handleSendInvite"

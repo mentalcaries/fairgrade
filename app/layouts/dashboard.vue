@@ -22,9 +22,12 @@ const { data: rotationGroups, refresh: refreshRotationGroups } = await useFetch<
   query: computed(() => ({ classId: activeClass.value?.id || '' })),
   watch: [activeClass],
 });
-const { data: consultants } = await useFetch('/api/consultants', {
-  default: () => [],
-});
+const { data: consultants, refresh: refreshConsultants } = await useFetch(
+  '/api/consultants',
+  {
+    default: () => [],
+  }
+);
 
 const { data: students, refresh: refreshStudents } = await useFetch<
   StudentWithUnit[]
@@ -52,6 +55,7 @@ provide('rotationGroups', rotationGroups);
 provide('refreshClasses', refreshClasses);
 provide('refreshRotationGroups', refreshRotationGroups);
 provide('consultants', consultants);
+provide('refreshConsultants', refreshConsultants);
 provide('students', students);
 provide('units', units);
 provide('refreshStudents', refreshStudents);

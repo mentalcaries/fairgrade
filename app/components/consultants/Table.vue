@@ -21,6 +21,7 @@ import {
 interface Props {
   consultants: Consultant[];
   sendingInviteEmail: string | null;
+  currentUserId?: string;
 }
 
 interface Emits {
@@ -97,7 +98,10 @@ const emit = defineEmits<Emits>();
               variant="outline"
               size="sm"
               class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 bg-transparent"
-              :disabled="sendingInviteEmail === consultant.email"
+              :disabled="
+                sendingInviteEmail === consultant.email ||
+                consultant.id === currentUserId
+              "
               @click="emit('sendInvite', consultant)"
             >
               <Loader2
@@ -113,6 +117,7 @@ const emit = defineEmits<Emits>();
               variant="ghost"
               size="icon"
               class="text-destructive hover:text-destructive"
+              :disabled="consultant.id === currentUserId"
               @click="emit('delete', consultant)"
             >
               <Trash2 class="h-4 w-4" />

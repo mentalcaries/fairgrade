@@ -1,4 +1,4 @@
-import { desc, eq, isNull, and } from 'drizzle-orm';
+import { desc, isNull } from 'drizzle-orm';
 import { db } from '~/lib/database';
 import { consultants } from '~/lib/database/schema';
 
@@ -7,9 +7,7 @@ export default defineEventHandler(async () => {
     const allConsultants = await db
       .select()
       .from(consultants)
-      .where(
-        and(eq(consultants.role, 'consultant'), isNull(consultants.deletedAt))
-      )
+      .where(isNull(consultants.deletedAt))
       .orderBy(desc(consultants.createdAt));
 
     return allConsultants;
