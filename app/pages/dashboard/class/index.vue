@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Archive,
 } from 'lucide-vue-next';
-import type { Class } from '~/types';
+import type { Class, RotationGroup } from '~/types';
 import { toast } from 'vue-sonner';
 import { formatDate } from '~/lib/format-date';
 
@@ -26,6 +26,7 @@ definePageMeta({
 const classes = inject<Ref<Class[]>>('classes')!;
 const refreshClasses = inject<() => Promise<void>>('refreshClasses')!;
 const rotationGroups = inject<Ref<RotationGroup[]>>('rotationGroups')!;
+
 const activeYearRotationGroups = computed(
   () =>
     rotationGroups.value?.filter((g) => g.classId === activeYear.value?.id) ||

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Unit, Student, Consultant } from '~/types';
+import type { Unit, Student, Consultant, Assessment } from '~/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,14 +24,16 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+const assessments = inject<Ref<Assessment[]>>('assessments')!;
 
 const unitStudents = computed(() => {
   return props.students.filter((s) => s.unitId === props.unit.id);
 });
 
 const gradedStudents = computed(() => {
-  // TODO: Replace with actual grading logic
-  return unitStudents.value.filter(() => true).length;
+  return unitStudents.value.filter((student) =>
+    assessments.value.some((a) => a.studentId === student.id)
+  ).length;
 });
 
 const gradingStatus = computed(() => {

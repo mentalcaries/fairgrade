@@ -1,4 +1,5 @@
 import { toast } from 'vue-sonner';
+import type { RotationGroup } from '~/types';
 
 export const useRotationGroupDates = () => {
   const setDatesOpen = useState('rotation-group-set-dates-open', () => false);
@@ -27,15 +28,11 @@ export const useRotationGroupDates = () => {
       toast.success('Rotation dates updated successfully');
       setDatesOpen.value = false;
       selectedGroup.value = null;
-
-      // Refresh rotation groups data
-      await refreshNuxtData('rotation-groups');
     } catch (error) {
       const err = error as { data?: { message?: string } };
       toast.error(err.data?.message || 'Failed to update dates');
     }
   };
-
   return {
     setDatesOpen,
     selectedGroup,

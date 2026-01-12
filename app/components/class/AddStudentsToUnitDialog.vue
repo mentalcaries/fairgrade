@@ -74,7 +74,7 @@ watch(
               <div
                 v-for="student in unassignedStudents"
                 :key="student.id"
-                class="flex items-center space-x-3"
+                class="flex items-center space-x-3 cursor-pointer"
               >
                 <Checkbox
                   :id="`add-student-${student.id}`"

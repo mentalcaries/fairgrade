@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { FetchError } from 'ofetch';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +20,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:open', value: boolean): void;
-  (e: 'updated'): void;
+  (e: 'submit', dates: { startDate: string; endDate: string }): void;
 }
 
 const props = defineProps<Props>();
@@ -53,34 +52,16 @@ const isValid = computed(() => {
   return end > start;
 });
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
   if (!isValid.value) {
     toast.error('End date must be after start date');
     return;
   }
 
-  isSubmitting.value = true;
-
-  try {
-    await $fetch(`/api/rotation-groups/${props.group.id}`, {
-      method: 'PATCH',
-      body: {
-        startDate: formData.value.startDate,
-        endDate: formData.value.endDate,
-      },
-    });
-
-    toast.success(`Group ${props.group.name} dates updated successfully`);
-    emit('updated');
-    emit('update:open', false);
-  } catch (error) {
-    const message =
-      error instanceof FetchError ? error.statusMessage : 'Unknown error';
-    toast.error(`Failed to update dates: ${message}`);
-    console.error('Error updating rotation group dates:', error);
-  } finally {
-    isSubmitting.value = false;
-  }
+  emit('submit', {
+    startDate: formData.value.startDate,
+    endDate: formData.value.endDate,
+  });
 };
 </script>
 

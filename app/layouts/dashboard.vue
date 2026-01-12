@@ -67,6 +67,13 @@ provide('refreshAssessments', refresAssessments);
 provide('currentUser', currentUser);
 
 const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();
+const onEditDateSubmit = async (dates: {
+  startDate: string;
+  endDate: string;
+}) => {
+  await handleSetDates(dates);
+  await refreshRotationGroups();
+};
 </script>
 
 <template>
@@ -81,7 +88,7 @@ const { setDatesOpen, selectedGroup, handleSetDates } = useRotationGroupDates();
       v-if="selectedGroup"
       v-model:open="setDatesOpen"
       :group="selectedGroup"
-      @submit="handleSetDates"
+      @submit="onEditDateSubmit"
     />
   </div>
 </template>

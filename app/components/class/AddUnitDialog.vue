@@ -166,16 +166,13 @@ watch(
                 v-for="student in unassignedStudents"
                 :key="student.id"
                 class="flex items-center space-x-3 cursor-pointer"
-                @click="toggleStudent(student.id)"
               >
                 <Checkbox
                   :id="`student-${student.id}`"
                   :checked="form.studentIds.includes(student.id)"
+                  @click="toggleStudent(student.id)"
                 />
-                <label
-                  :for="`student-${student.id}`"
-                  class="text-sm"
-                >
+                <label :for="`student-${student.id}`" class="text-sm">
                   {{ student.firstName }} {{ student.lastName }} ({{
                     student.studentId
                   }})
