@@ -34,4 +34,8 @@ export const auth = betterAuth({
       clientSecret: import.meta.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  trustedOrigins:
+    process.env.NODE_ENV === 'production'
+      ? ['https://fairgrade.fscx.cloud']
+      : ['http://localhost:3000', 'http://localhost:4000'],
 });
