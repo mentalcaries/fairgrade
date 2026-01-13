@@ -32,6 +32,8 @@ const { data: consultants, refresh: refreshConsultants } = await useFetch(
 const { data: students, refresh: refreshStudents } = await useFetch<
   StudentWithUnit[]
 >('/api/students', {
+  query: computed(() => ({ classId: activeClass.value?.id || '' })),
+  watch: [activeClass],
   default: () => [],
 });
 

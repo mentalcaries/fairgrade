@@ -156,7 +156,7 @@ const handleManageGroup = (yearId: string, groupId: string) => {
         </p>
         <Button @click="wizardOpen = true">
           <Plus class="h-4 w-4 mr-2" />
-          New Academic Year
+          New Class Year
         </Button>
       </CardContent>
     </Card>
