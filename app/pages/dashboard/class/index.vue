@@ -57,6 +57,7 @@ const handleCreateYear = async (data: WizardData) => {
         name: data.yearName,
         startDate: data.startDate,
         endDate: data.endDate,
+        isActive: data.isActive,
       },
     });
 

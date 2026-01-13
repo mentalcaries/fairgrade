@@ -44,8 +44,8 @@ const handleBack = () => {
 };
 
 const handleSubmit = () => {
-  console.log(data.value);
-  // emit('submit', data.value);
+  console.log(data.value)
+  emit('submit', data.value);
   emit('update:open', false);
 
   // Reset form
