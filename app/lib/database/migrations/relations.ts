@@ -58,7 +58,6 @@ export const consultantsRelations = relations(consultants, ({many}) => ({
 	assessments: many(assessments),
 	units: many(units),
 }));
-
 export const sessionRelations = relations(session, ({one}) => ({
 	user: one(user, {
 		fields: [session.userId],
