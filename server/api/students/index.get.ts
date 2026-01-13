@@ -5,10 +5,13 @@ import { asc, eq, and } from 'drizzle-orm';
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event);
-    const { rotationGroupId, consultantId, unitId } = query;
+    const { classId, rotationGroupId, consultantId, unitId } = query;
 
-    // Build where conditions
     const conditions = [];
+    
+    if (classId) {
+      conditions.push(eq(students.classId, classId as string));
+    }
     
     if (rotationGroupId) {
       conditions.push(eq(students.rotationGroupId, rotationGroupId as string));

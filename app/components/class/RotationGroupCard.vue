@@ -11,7 +11,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'manage' | 'editDates'): void;
+  (e: 'manage' | 'edit-dates'): void;
 }
 
 const props = defineProps<Props>();
@@ -64,7 +64,7 @@ const isCurrent = computed(() => {
               {{ formatDate(group.endDate) }}
             </span>
           </div>
-          <Button variant="ghost" size="sm" @click.stop="emit('editDates')">
+          <Button variant="ghost" size="sm" @click.stop="emit('edit-dates')">
             <PencilIcon />
           </Button>
         </template>
@@ -74,7 +74,7 @@ const isCurrent = computed(() => {
           v-else
           variant="outline"
           size="sm"
-          @click.stop="emit('editDates')"
+          @click.stop="emit('edit-dates')"
         >
           <Calendar class="h-4 w-4 mr-2" />
           Set Dates

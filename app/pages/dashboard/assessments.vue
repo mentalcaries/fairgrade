@@ -6,6 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Search, Download } from 'lucide-vue-next';
 import { useAssessmentData } from '~/composables/useAssessmentData';
@@ -27,11 +34,43 @@ const assessments = inject<Ref<Assessment[]>>('assessments')!;
 const refreshAssessments = inject<() => Promise<void>>('refreshAssessments')!;
 const consultants = inject<Ref<Consultant[]>>('consultants')!;
 
-const { searchTerm, filteredStudents } = useAssessmentData(
+const searchTerm = ref('');
+const selectedConsultantId = ref<string>('all');
+
+// Get students with grades from useAssessmentData
+const { filteredStudents: baseFilteredStudents } = useAssessmentData(
   students,
   assessments,
   consultants
 );
+
+// Additional filtering for search and consultant
+const filteredStudents = computed(() => {
+  let filtered = baseFilteredStudents.value;
+
+  // Filter by search term
+  if (searchTerm.value.trim()) {
+    const term = searchTerm.value.toLowerCase();
+    filtered = filtered.filter(
+      (student) =>
+        student.firstName.toLowerCase().includes(term) ||
+        student.lastName.toLowerCase().includes(term) ||
+        student.studentId.toLowerCase().includes(term)
+    );
+  }
+
+  // Filter by consultant
+  if (selectedConsultantId.value !== 'all') {
+    filtered = filtered.filter((student) => {
+      const assessment = assessments.value.find(
+        (a) => a.studentId === student.id
+      );
+      return assessment?.consultantId === selectedConsultantId.value;
+    });
+  }
+
+  return filtered;
+});
 
 const editDialogOpen = ref(false);
 const editingStudent = ref<StudentWithGrades | null>(null);
@@ -114,6 +153,22 @@ const exportToExcel = () => {
                 class="pl-10"
               />
             </div>
+
+            <Select v-model="selectedConsultantId">
+              <SelectTrigger class="w-[200px]">
+                <SelectValue placeholder="All Consultants" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Consultants</SelectItem>
+                <SelectItem
+                  v-for="consultant in consultants"
+                  :key="consultant.id"
+                  :value="consultant.id"
+                >
+                  {{ consultant.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             <Button variant="outline" @click="exportToExcel">
               <Download class="h-4 w-4 mr-2" />

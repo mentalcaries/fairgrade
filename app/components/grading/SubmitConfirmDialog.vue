@@ -13,7 +13,6 @@ import { AlertTriangle, Lock } from 'lucide-vue-next';
 interface Props {
   open: boolean;
   studentName: string;
-  averageScore: string;
   loading?: boolean;
 }
 
@@ -43,20 +42,13 @@ const emit = defineEmits<Emits>();
         <div
           class="flex items-start gap-3 p-3 bg-amber-50 text-amber-700 rounded-lg"
         >
-          <AlertTriangle class="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <AlertTriangle class="h-5 w-5 mt-0.5 shrink-0" />
           <div class="text-sm">
             <p class="font-medium">This action cannot be undone</p>
             <p class="mt-1">
               Once submitted, this assessment will be locked and cannot be
               edited.
             </p>
-          </div>
-        </div>
-
-        <div class="space-y-3 p-4 bg-secondary/50 rounded-lg">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">Average Score</span>
-            <span class="text-2xl font-bold">{{ averageScore }}</span>
           </div>
         </div>
       </div>

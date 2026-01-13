@@ -21,17 +21,25 @@ import { toast } from 'vue-sonner';
 
 const { data: consultant } = await useFetch('/api/consultants/me');
 
-// Fetch students assigned to this consultant
+const { data: activeClass } = await useFetch('/api/classes', {
+  transform: (classes) => classes.find((c) => c.isActive),
+});
+
 const { data: students } = await useFetch('/api/students', {
-  query: { consultantId: consultant.value?.id },
+  query: computed(() => ({
+    consultantId: consultant.value?.id,
+    classId: activeClass.value?.id || '',
+  })),
   default: () => [],
 });
 
-// Fetch assessments for this consultant
 const { data: assessments, refresh: refreshAssessments } = await useFetch(
   '/api/assessments',
   {
-    query: { consultantId: consultant.value?.id },
+    query: computed(() => ({
+      consultantId: consultant.value?.id,
+      classId: activeClass.value?.id || '',
+    })),
     default: () => [],
   }
 );
@@ -149,23 +157,6 @@ const handleSubmit = async () => {
 const handleLogout = async () => {
   await signOut();
   navigateTo('/login');
-};
-
-const average = computed(() =>
-  (
-    (scores.value.attendance +
-      scores.value.factualKnowledge +
-      scores.value.clinicalApproach +
-      scores.value.reliabilityDeportment +
-      scores.value.initiative) /
-    5
-  ).toFixed(1)
-);
-
-const getScoreColor = (score: number) => {
-  if (score >= 80) return 'text-emerald-600';
-  if (score >= 50) return 'text-amber-600';
-  return 'text-red-600';
 };
 
 const availableStudents = computed(() =>
@@ -294,11 +285,7 @@ const availableStudents = computed(() =>
                       {{ criterion.description }}
                     </p>
                   </div>
-                  <span
-                    :class="`text-2xl font-bold ${getScoreColor(
-                      scores[criterion.key]
-                    )}`"
-                  >
+                  <span class="text-2xl font-bold">
                     {{ scores[criterion.key] }}
                   </span>
                 </div>
@@ -321,31 +308,8 @@ const availableStudents = computed(() =>
               </div>
             </div>
 
-            <div class="space-y-2">
-              <Label>Notes (Optional)</Label>
-              <textarea
-                v-model="notes"
-                class="w-full min-h-[100px] px-3 py-2 border border-border rounded-md bg-background"
-                placeholder="Add any additional comments..."
-              />
-            </div>
 
-            <div class="space-y-3">
-              <div
-                class="flex items-center justify-between p-4 rounded-lg bg-secondary/50"
-              >
-                <span class="font-medium">Average Score</span>
-                <span
-                  :class="`text-3xl font-bold ${getScoreColor(
-                    parseFloat(average)
-                  )}`"
-                >
-                  {{ average }}
-                </span>
-              </div>
-            </div>
-
-            <Button class="w-full" size="lg" @click="openSubmitDialog">
+            <Button class="w-full my-5" size="lg" @click="openSubmitDialog">
               Submit Assessment
             </Button>
           </template>
@@ -355,7 +319,6 @@ const availableStudents = computed(() =>
     <GradingSubmitConfirmDialog
       v-model:open="submitConfirmOpen"
       :student-name="selectedStudentName"
-      :average-score="average"
       :loading="isSubmitting"
       @confirm="handleSubmit"
     />
