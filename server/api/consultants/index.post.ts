@@ -12,6 +12,13 @@ export default defineEventHandler(async (event) => {
     // TEMP ID - Better Auth to generate this later
     const userId = randomUUID();
 
+    console.log('Attempting to insert:', {
+      userId,
+      name: validatedData.name,
+      email: validatedData.email,
+      role: validatedData.role,
+    });
+
     const [newConsultant] = await db
       .insert(consultants)
       .values({
@@ -24,6 +31,8 @@ export default defineEventHandler(async (event) => {
 
     return newConsultant;
   } catch (error) {
+    console.error('Full error:', error); // <-- Add this
+    console.error('Error details:', JSON.stringify(error, null, 2));
     if (error instanceof Error && error.name === 'ZodError') {
       throw createError({
         statusCode: 400,

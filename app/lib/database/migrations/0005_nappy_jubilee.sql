@@ -1,0 +1,1 @@
+ALTER TABLE "consultants" ALTER COLUMN "user_id" DROP NOT NULL;
