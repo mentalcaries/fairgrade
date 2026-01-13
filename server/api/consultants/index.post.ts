@@ -1,7 +1,6 @@
 import { db } from '~/lib/database';
 import { consultants } from '~/lib/database/schema';
 import { createConsultantSchema } from '#imports';
-import { randomUUID } from 'crypto';
 import { DrizzleQueryError } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
@@ -10,19 +9,10 @@ export default defineEventHandler(async (event) => {
     const validatedData = createConsultantSchema.parse(body);
 
     // TEMP ID - Better Auth to generate this later
-    const userId = randomUUID();
-
-    console.log('Attempting to insert:', {
-      userId,
-      name: validatedData.name,
-      email: validatedData.email,
-      role: validatedData.role,
-    });
 
     const [newConsultant] = await db
       .insert(consultants)
       .values({
-        userId,
         name: validatedData.name,
         email: validatedData.email,
         role: validatedData.role,
