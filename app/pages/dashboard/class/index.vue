@@ -40,6 +40,7 @@ const { openSetDates } = useRotationGroupDates();
 const wizardOpen = ref(false);
 const archivedOpen = ref(false);
 const isCreating = ref(false);
+const isActivating = ref<string | null>(null);
 
 // Filter years
 const activeYear = computed(() => classes.value.find((y) => y.isActive));
@@ -59,9 +60,11 @@ const handleCreateYear = async (data: WizardData) => {
       },
     });
 
-    toast.success('Academic year created successfully');
-    await refreshClasses();
-    navigateTo(`/dashboard/class/`);
+    if (response) {
+      toast.success('Academic year created successfully');
+      await refreshClasses();
+      navigateTo(`/dashboard/class/`);
+    }
   } catch (error) {
     const message =
       error instanceof FetchError
@@ -70,6 +73,28 @@ const handleCreateYear = async (data: WizardData) => {
     toast.error(`Error creating class: ${message}`);
   } finally {
     isCreating.value = false;
+  }
+};
+
+const setAsActive = async (classId: string) => {
+  isActivating.value = classId;
+
+  try {
+    await $fetch(`/api/classes/${classId}`, {
+      method: 'PATCH',
+      body: { isActive: true },
+    });
+
+    toast.success('Academic year activated successfully');
+    await refreshClasses();
+  } catch (error) {
+    const message =
+      error instanceof FetchError
+        ? error.statusMessage
+        : 'Failed to activate academic year';
+    toast.error(message as string);
+  } finally {
+    isActivating.value = null;
   }
 };
 
@@ -164,7 +189,19 @@ const handleManageGroup = (yearId: string, groupId: string) => {
                   {{ formatDate(year.endDate) }}
                 </p>
               </div>
-              <Button variant="outline" size="sm"> View Archive </Button>
+              <div class="flex gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  :disabled="isActivating === year.id"
+                  @click="setAsActive(year.id)"
+                >
+                  {{
+                    isActivating === year.id ? 'Activating...' : 'Set as Active'
+                  }}
+                </Button>
+                <Button variant="outline" size="sm"> View Archive </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

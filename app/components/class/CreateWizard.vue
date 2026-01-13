@@ -10,11 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Info } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 
 interface Props {
   open: boolean;
+  loading?: boolean;
 }
 
 interface Emits {
@@ -22,7 +24,7 @@ interface Emits {
   (e: 'submit', data: WizardData): void;
 }
 
-const { open } = defineProps<Props>();
+const { open, loading } = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const step = ref(1);
@@ -30,6 +32,7 @@ const data = ref<WizardData>({
   yearName: '',
   startDate: '',
   endDate: '',
+  isActive: true, // Default to active
 });
 
 const handleNext = () => {
@@ -41,7 +44,8 @@ const handleBack = () => {
 };
 
 const handleSubmit = () => {
-  emit('submit', data.value);
+  console.log(data.value);
+  // emit('submit', data.value);
   emit('update:open', false);
 
   // Reset form
@@ -50,10 +54,9 @@ const handleSubmit = () => {
     yearName: '',
     startDate: '',
     endDate: '',
+    isActive: true,
   };
 };
-
-
 
 const isStep1Valid = computed(() => {
   return data.value.yearName && data.value.startDate && data.value.endDate;
@@ -103,6 +106,31 @@ const isStep1Valid = computed(() => {
               <Input id="endDate" v-model="data.endDate" type="date" />
             </div>
           </div>
+
+          <!-- Active Toggle -->
+          <div
+            class="flex items-center justify-between p-4 bg-secondary/50 rounded-lg"
+          >
+            <div class="space-y-0.5">
+              <Label for="isActive" class="text-base">Set as Active Year</Label>
+              <p class="text-sm text-muted-foreground">
+                Make this the current academic year
+              </p>
+            </div>
+            <Switch id="isActive" v-model="data.isActive" />
+          </div>
+
+          <!-- Warning if setting as active -->
+          <div
+            v-if="data.isActive"
+            class="flex items-start gap-2 p-3 bg-amber-50 text-amber-700 rounded-lg text-sm"
+          >
+            <Info class="h-4 w-4 mt-0.5 shrink-0" />
+            <span>
+              This will deactivate the current active academic year and set this
+              new year as active.
+            </span>
+          </div>
         </div>
         <div class="flex justify-end">
           <Button :disabled="!isStep1Valid" @click="handleNext">
@@ -111,7 +139,7 @@ const isStep1Valid = computed(() => {
         </div>
       </div>
 
-
+      <!-- Step 2: Review -->
       <div v-if="step === 2" class="space-y-6 py-4">
         <div>
           <DialogTitle class="text-xl">Review & Create</DialogTitle>
@@ -131,6 +159,21 @@ const isStep1Valid = computed(() => {
                 <span class="text-primary">•</span>
                 <span>6 rotation groups (A through F)</span>
               </li>
+              <li class="flex items-start gap-2">
+                <span class="text-primary">•</span>
+                <span>
+                  Status:
+                  <span
+                    :class="
+                      data.isActive
+                        ? 'text-emerald-600 font-medium'
+                        : 'text-muted-foreground'
+                    "
+                  >
+                    {{ data.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </span>
+              </li>
             </ul>
           </div>
 
@@ -147,7 +190,9 @@ const isStep1Valid = computed(() => {
         </div>
         <div class="flex justify-between pt-2">
           <Button variant="outline" @click="handleBack"> Back </Button>
-          <Button @click="handleSubmit"> Create Academic Year </Button>
+          <Button :disabled="loading" @click="handleSubmit">
+            {{ loading ? 'Creating...' : 'Create Academic Year' }}
+          </Button>
         </div>
       </div>
     </DialogContent>

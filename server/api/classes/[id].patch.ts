@@ -17,6 +17,14 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const validatedData = updateClassSchema.parse(body);
 
+    // **NEW: If setting this class to active, deactivate all others first**
+    if (validatedData.isActive === true) {
+      await db
+        .update(classes)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(classes.isActive, true));
+    }
+
     const [updatedClass] = await db
       .update(classes)
       .set({
