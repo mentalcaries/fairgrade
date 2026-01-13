@@ -201,7 +201,6 @@ const handleManageGroup = (yearId: string, groupId: string) => {
                     isActivating === year.id ? 'Activating...' : 'Set as Active'
                   }}
                 </Button>
-                <Button variant="outline" size="sm"> View Archive </Button>
               </div>
             </CardContent>
           </Card>
