@@ -7,7 +7,7 @@ export default defineEventHandler(async () => {
     const allConsultants = await db
       .select()
       .from(consultants)
-      .where(and(isNull(consultants.deletedAt), ne(consultants.role, 'admin')))
+      .where(and(isNull(consultants.deletedAt), ne(consultants.role, 'system')))
       .orderBy(desc(consultants.createdAt));
 
     return allConsultants;
