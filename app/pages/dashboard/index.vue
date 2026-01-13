@@ -41,7 +41,6 @@ const { pendingActions } = usePendingActions(
       </p>
     </div>
 
-    <!-- Stats Grid -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <DashboardStatsCard
         v-for="stat in stats"
