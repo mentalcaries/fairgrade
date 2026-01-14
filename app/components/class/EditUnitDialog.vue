@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AlertTriangle } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 interface Props {
   open: boolean;
@@ -27,13 +29,17 @@ interface Props {
 
 interface Emits {
   (e: 'update:open', value: boolean): void;
-  (e: 'submit', form: { hospital: Hospital; consultantId: string }): void;
+  (
+    e: 'submit',
+    form: { name: string; hospital: Hospital; consultantId: string }
+  ): void;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const form = ref({
+  name: props.unit.name,
   hospital: props.unit.hospital,
   consultantId: props.unit.consultantId || '',
 });
@@ -43,6 +49,7 @@ watch(
   () => props.unit,
   (unit) => {
     form.value = {
+      name: unit.name,
       hospital: unit.hospital,
       consultantId: unit.consultantId || '',
     };
@@ -57,9 +64,51 @@ const hasConsultantChanged = computed(() => {
   );
 });
 
-const handleSubmit = () => {
-  emit('submit', form.value);
+const isSubmitDisabled = computed(() => {
+  return (
+    !form.value.name.trim() || !form.value.hospital || !form.value.consultantId
+  );
+});
+
+const handleSubmit = (e: Event) => {
+  e.preventDefault();
+
+  // Validate form
+  if (!form.value.name.trim()) {
+    toast.error('Please enter a unit name');
+    return;
+  }
+
+  if (!form.value.hospital) {
+    toast.error('Please select a hospital');
+    return;
+  }
+
+  if (!form.value.consultantId) {
+    toast.error('Please select a consultant');
+    return;
+  }
+
+  emit('submit', {
+    name: form.value.name.trim(),
+    hospital: form.value.hospital,
+    consultantId: form.value.consultantId,
+  });
 };
+
+// Reset form when dialog closes
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) {
+      form.value = {
+        name: props.unit.name,
+        hospital: props.unit.hospital,
+        consultantId: props.unit.consultantId || '',
+      };
+    }
+  }
+);
 </script>
 
 <template>
@@ -69,11 +118,24 @@ const handleSubmit = () => {
         <DialogTitle>Edit Unit {{ unit.name }}</DialogTitle>
       </DialogHeader>
 
-      <div class="space-y-4 py-4">
+      <form @submit="handleSubmit" class="space-y-4 py-4">
+        <!-- Unit Name Field -->
         <div class="space-y-2">
-          <Label for="hospital">Hospital</Label>
-          <Select v-model="form.hospital">
-            <SelectTrigger>
+          <Label for="unit-name">Unit Name *</Label>
+          <Input
+            id="unit-name"
+            v-model="form.name"
+            placeholder="e.g., Dr. Khan, EWMSC Unit A, Cardiology"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Hospital Field -->
+        <div class="space-y-2">
+          <Label for="hospital">Hospital *</Label>
+          <Select v-model="form.hospital" required>
+            <SelectTrigger id="hospital">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -88,10 +150,11 @@ const handleSubmit = () => {
           </Select>
         </div>
 
+        <!-- Consultant Field -->
         <div class="space-y-2">
-          <Label for="consultant">Consultant</Label>
-          <Select v-model="form.consultantId">
-            <SelectTrigger>
+          <Label for="consultant">Consultant *</Label>
+          <Select v-model="form.consultantId" required>
+            <SelectTrigger id="consultant">
               <SelectValue placeholder="Select consultant..." />
             </SelectTrigger>
             <SelectContent>
@@ -106,6 +169,7 @@ const handleSubmit = () => {
           </Select>
         </div>
 
+        <!-- Consultant Change Warning -->
         <div
           v-if="hasConsultantChanged"
           class="flex items-start gap-2 p-3 bg-amber-50 text-amber-700 rounded-lg text-sm"
@@ -115,14 +179,21 @@ const handleSubmit = () => {
             Changing consultant will notify both the current and new consultant
           </span>
         </div>
-      </div>
 
-      <DialogFooter>
-        <Button variant="outline" @click="emit('update:open', false)">
-          Cancel
-        </Button>
-        <Button @click="handleSubmit"> Save Changes </Button>
-      </DialogFooter>
+        <!-- Form Actions -->
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            @click="emit('update:open', false)"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" :disabled="isSubmitDisabled">
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
   </Dialog>
 </template>
