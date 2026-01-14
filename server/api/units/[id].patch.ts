@@ -1,6 +1,7 @@
 import { db } from '~/lib/database';
 import { units } from '~/lib/database/schema';
 import { eq } from 'drizzle-orm';
+import { updateUnitSchema } from '~~/server/utils/validation/units';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -13,29 +14,43 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(eq(units.id, id))
-      .limit(1);
+    const body = await readBody(event);
+    const validatedData = updateUnitSchema.parse(body);
 
-    if (!unit) {
+    const [updatedUnit] = await db
+      .update(units)
+      .set({
+        ...validatedData,
+        updatedAt: new Date(),
+      })
+      .where(eq(units.id, id))
+      .returning();
+
+    if (!updatedUnit) {
       throw createError({
         statusCode: 404,
         message: 'Unit not found',
       });
     }
 
-    return unit;
+    return updatedUnit;
   } catch (error) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      throw createError({
+        statusCode: 400,
+        message: 'Validation failed',
+        data: error,
+      });
+    }
+
     if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
 
-    console.error('Error fetching unit:', error);
+    console.error('Error updating unit:', error);
     throw createError({
       statusCode: 500,
-      message: 'Failed to fetch unit',
+      message: 'Failed to update unit',
     });
   }
 });

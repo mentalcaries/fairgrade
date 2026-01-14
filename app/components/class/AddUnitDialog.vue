@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -20,11 +21,11 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertTriangle } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 interface Props {
   open: boolean;
   groupName: string;
-  nextUnitName: string;
   preselectedHospital?: Hospital;
   unassignedStudents: Student[];
   consultants: Consultant[];
@@ -35,6 +36,7 @@ interface Emits {
   (
     e: 'submit',
     form: {
+      name: string;
       hospital: Hospital;
       consultantId: string;
       studentIds: string[];
@@ -46,15 +48,18 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const form = ref<{
+  name: string;
   hospital: Hospital | '';
   consultantId: string;
   studentIds: string[];
 }>({
+  name: '',
   hospital: '',
   consultantId: '',
   studentIds: [],
 });
 
+// Set preselected hospital when it changes
 watch(
   () => props.preselectedHospital,
   (hospital) => {
@@ -66,7 +71,9 @@ watch(
 );
 
 const isSubmitDisabled = computed(() => {
-  return !form.value.hospital || !form.value.consultantId;
+  return (
+    !form.value.name.trim() || !form.value.hospital || !form.value.consultantId
+  );
 });
 
 const toggleStudent = (studentId: string) => {
@@ -79,21 +86,39 @@ const toggleStudent = (studentId: string) => {
   }
 };
 
-const handleSubmit = () => {
-  if (form.value.hospital && form.value.consultantId) {
-    emit('submit', {
-      hospital: form.value.hospital,
-      consultantId: form.value.consultantId,
-      studentIds: form.value.studentIds,
-    });
+const handleSubmit = (e: Event) => {
+  e.preventDefault();
 
-    // Reset form
-    form.value = {
-      hospital: '',
-      consultantId: '',
-      studentIds: [],
-    };
+  // Validate form
+  if (!form.value.name.trim()) {
+    toast.error('Please enter a unit name');
+    return;
   }
+
+  if (!form.value.hospital) {
+    toast.error('Please select a hospital');
+    return;
+  }
+
+  if (!form.value.consultantId) {
+    toast.error('Please select a consultant');
+    return;
+  }
+
+  emit('submit', {
+    name: form.value.name.trim(),
+    hospital: form.value.hospital,
+    consultantId: form.value.consultantId,
+    studentIds: form.value.studentIds,
+  });
+
+  // Reset form
+  form.value = {
+    name: '',
+    hospital: '',
+    consultantId: '',
+    studentIds: [],
+  };
 };
 
 // Reset form when dialog closes
@@ -102,7 +127,8 @@ watch(
   (isOpen) => {
     if (!isOpen) {
       form.value = {
-        hospital: '',
+        name: '',
+        hospital: props.preselectedHospital || '',
         consultantId: '',
         studentIds: [],
       };
@@ -116,14 +142,30 @@ watch(
     <DialogContent class="max-w-lg">
       <DialogHeader>
         <DialogTitle>Add Unit to Group {{ groupName }}</DialogTitle>
-        <DialogDescription>Unit {{ nextUnitName }}</DialogDescription>
+        <DialogDescription>Enter unit details</DialogDescription>
       </DialogHeader>
 
-      <div class="space-y-4 py-4">
+      <form @submit="handleSubmit" class="space-y-4 py-4">
+        <!-- Unit Name Field -->
+        <div class="space-y-2">
+          <Label for="unit-name">Unit Name *</Label>
+          <Input
+            id="unit-name"
+            v-model="form.name"
+            placeholder="Dr. Khan Unit B"
+            required
+            autocomplete="off"
+          />
+          <p class="text-xs text-muted-foreground">
+            Name this unit (often named after the lead consultant)
+          </p>
+        </div>
+
+        <!-- Hospital Field -->
         <div class="space-y-2">
           <Label for="hospital">Hospital *</Label>
-          <Select v-model="form.hospital">
-            <SelectTrigger>
+          <Select v-model="form.hospital" required>
+            <SelectTrigger id="hospital">
               <SelectValue placeholder="Select hospital..." />
             </SelectTrigger>
             <SelectContent>
@@ -138,10 +180,11 @@ watch(
           </Select>
         </div>
 
+        <!-- Consultant Field -->
         <div class="space-y-2">
           <Label for="consultant">Consultant *</Label>
-          <Select v-model="form.consultantId">
-            <SelectTrigger>
+          <Select v-model="form.consultantId" required>
+            <SelectTrigger id="consultant">
               <SelectValue placeholder="Select consultant..." />
             </SelectTrigger>
             <SelectContent>
@@ -154,8 +197,12 @@ watch(
               </SelectItem>
             </SelectContent>
           </Select>
+          <p class="text-xs text-muted-foreground">
+            The consultant who will grade students in this unit
+          </p>
         </div>
 
+        <!-- Students Field -->
         <div class="space-y-2">
           <Label>Students ({{ form.studentIds.length }} selected)</Label>
           <div
@@ -165,18 +212,22 @@ watch(
               <div
                 v-for="student in unassignedStudents"
                 :key="student.id"
-                class="flex items-center space-x-3 cursor-pointer"
+                class="flex items-center space-x-3"
               >
                 <Checkbox
                   :id="`student-${student.id}`"
                   :checked="form.studentIds.includes(student.id)"
-                  @click="toggleStudent(student.id)"
+                  @update:checked="toggleStudent(student.id)"
                 />
-                <label :for="`student-${student.id}`" class="text-sm">
-                  {{ student.firstName }} {{ student.lastName }} ({{
-                    student.studentId
-                  }})
-                </label>
+                <Label
+                  :for="`student-${student.id}`"
+                  class="text-sm font-normal cursor-pointer flex-1"
+                >
+                  {{ student.firstName }} {{ student.lastName }}
+                  <span class="text-muted-foreground"
+                    >({{ student.studentId }})</span
+                  >
+                </Label>
               </div>
             </template>
 
@@ -192,21 +243,26 @@ watch(
             <AlertTriangle class="h-3 w-3" />
             Warning: Recommended max is 5-6 students per unit
           </p>
+
+          <p class="text-xs text-muted-foreground">
+            You can add more students later
+          </p>
         </div>
 
-        <p class="text-xs text-muted-foreground">
-          You can add more students later
-        </p>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" @click="emit('update:open', false)">
-          Cancel
-        </Button>
-        <Button :disabled="isSubmitDisabled" @click="handleSubmit">
-          Create Unit
-        </Button>
-      </DialogFooter>
+        <!-- Form Actions -->
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            @click="emit('update:open', false)"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" :disabled="isSubmitDisabled">
+            Create Unit
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
   </Dialog>
 </template>

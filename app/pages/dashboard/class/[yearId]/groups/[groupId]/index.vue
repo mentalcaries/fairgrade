@@ -81,15 +81,6 @@ const unitsByHospital = computed(() => {
   return grouped;
 });
 
-const nextUnitName = computed(() => {
-  const existingNumbers = groupUnits.value
-    .map((c) => Number.parseInt(c.name.slice(1)))
-    .filter((n) => !isNaN(n));
-  const maxNumber =
-    existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
-  return `${rotationGroup.value?.name}${maxNumber + 1}`;
-});
-
 const bulkImportOpen = ref(false);
 const addStudentOpen = ref(false);
 const addUnitOpen = ref(false);
@@ -135,42 +126,32 @@ const handleAddStudent = async (form: {
 };
 
 const handleAddUnit = async (form: {
+  name: string;
   hospital: Hospital;
   consultantId: string;
   studentIds: string[];
 }) => {
   try {
-    // Create the unit
-    const newUnit = await $fetch<Unit>('/api/units', {
+    await $fetch('/api/units', {
       method: 'POST',
       body: {
-        name: nextUnitName.value,
+        classId,
+        name: form.name,
         hospital: form.hospital,
         consultantId: form.consultantId || null,
         rotationGroupId: groupId,
-        classId,
+        studentIds: form.studentIds,
       },
     });
 
-    if (newUnit && form.studentIds.length > 0) {
-      await Promise.all(
-        form.studentIds.map((studentId) =>
-          $fetch(`/api/students/${studentId}`, {
-            method: 'PATCH',
-            body: {
-              unitId: newUnit.id,
-            },
-          })
-        )
-      );
-    }
-
-    toast.success(`Unit ${nextUnitName.value} created successfully`);
+    toast.success(`Unit "${form.name}" created successfully`);
     addUnitOpen.value = false;
 
-    // Refresh the units list and students
     await refreshUnits();
-    await refreshStudents();
+
+    if (form.studentIds.length > 0) {
+      await refreshStudents();
+    }
   } catch (error) {
     const err = error as { data?: { message?: string } };
     toast.error(err.data?.message || 'Failed to create unit');
@@ -178,6 +159,7 @@ const handleAddUnit = async (form: {
 };
 
 const handleEditUnit = async (form: {
+  name: string;
   hospital: Hospital;
   consultantId: string;
 }) => {
@@ -187,12 +169,13 @@ const handleEditUnit = async (form: {
     await $fetch(`/api/units/${editUnitData.value.id}`, {
       method: 'PATCH',
       body: {
+        name: form.name,
         hospital: form.hospital,
         consultantId: form.consultantId || null,
       },
     });
 
-    toast.success(`Unit ${editUnitData.value.name} updated successfully`);
+    toast.success(`Unit "${form.name}" updated successfully`); 
     editUnitOpen.value = false;
     editUnitData.value = null;
 
@@ -390,7 +373,6 @@ const openAddUnitDialog = (hospital?: Hospital) => {
     <ClassAddUnitDialog
       v-model:open="addUnitOpen"
       :group-name="rotationGroup?.name || ''"
-      :next-unit-name="nextUnitName"
       :preselected-hospital="preselectedHospital"
       :unassigned-students="unassignedStudents"
       :consultants="consultants"
